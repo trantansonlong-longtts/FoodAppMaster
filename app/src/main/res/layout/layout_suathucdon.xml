@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Sửa thông tin món ăn"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="24dp"/>
+
+    <ImageView
+        android:id="@+id/imSuaHinhMonAn"
+        android:layout_width="150dp"
+        android:layout_height="150dp"
+        android:src="@drawable/backgroundheader1"
+        android:scaleType="centerCrop"
+        android:layout_gravity="center_horizontal"
+        android:contentDescription="Hình ảnh món ăn"/>
+
+    <EditText
+        android:id="@+id/edSuaTenMon"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Tên món ăn"
+        android:layout_marginTop="16dp"/>
+
+    <EditText
+        android:id="@+id/edSuaGiaTien"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Giá tiền"
+        android:inputType="number"/>
+
+    <Button
+        android:id="@+id/btnDongYSuaMon"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Lưu thay đổi"
+        android:layout_marginTop="24dp"/>
+
+</LinearLayout>

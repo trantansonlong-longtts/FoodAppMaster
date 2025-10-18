@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp"
+    android:background="@color/backgroundtransparentGray">
+
+    <!-- Tiêu đề -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="THÊM LOẠI THỰC ĐƠN"
+        android:layout_gravity="center"
+        android:textColor="@color/Grey_700"
+        android:textSize="@dimen/size18sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="16dp"/>
+
+    <!-- Nhập tên loại thực đơn -->
+    <EditText
+        android:id="@+id/edThemLoaiThucDon"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Tên loại thực đơn"
+        android:background="@color/colorWhite"
+        android:padding="12dp"
+        android:textColor="@color/colorBlack"
+        android:textColorHint="@color/colorGray"
+        android:layout_marginBottom="16dp"
+        tools:ignore="Autofill,TextFields" />
+
+    <!-- Ảnh loại thực đơn -->
+    <ImageView
+        android:id="@+id/imHinhLoaiThucDon"
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:scaleType="centerCrop"
+        android:background="@drawable/backgroundheader1"
+        android:contentDescription="Chọn hình loại thực đơn"
+        android:layout_marginBottom="16dp"
+        tools:ignore="ContentDescription" />
+
+    <!-- Nút hành động -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/btnDongYThemLoaiThucDon"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/dongy"
+            android:background="@color/colorPrimary"
+            android:textColor="@color/colorWhite"
+            android:layout_marginEnd="8dp"
+            tools:ignore="ButtonStyle" />
+
+        <Button
+            android:id="@+id/btnThoatThemLoaiThucDon"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/thoat"
+            android:background="@color/colorRed"
+            android:textColor="@color/colorWhite"
+            android:layout_marginStart="8dp"
+            tools:ignore="ButtonStyle" />
+    </LinearLayout>
+
+</LinearLayout>

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+<!--    <item-->
+<!--        android:id="@+id/itThemBanAn"-->
+<!--        android:title="@string/thembanan"-->
+<!--        android:icon="@drawable/ic_add_table"-->
+<!--        app:showAsAction="ifRoom" />-->
+
+<!--    <item-->
+<!--        android:id="@+id/itThemThucDon"-->
+<!--        android:title="@string/themthucdon"-->
+<!--        android:icon="@drawable/ic_add_menu"-->
+<!--        app:showAsAction="ifRoom" />-->
+
+    <item
+        android:id="@+id/itThemNhanVien"
+        android:title="@string/themnhanvien"
+        android:icon="@drawable/ic_add_person"
+        app:showAsAction="ifRoom" />
+
+</menu>
