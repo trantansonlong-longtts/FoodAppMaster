@@ -5,9 +5,9 @@ public class MonAnDTO {
     private String TenMonAn;
     private int GiaTien;
     // Trong MonAnDTO.java
-    private byte[] HinhAnh;
-    public byte[] getHinhAnh() { return HinhAnh; }
-    public void setHinhAnh(byte[] hinhAnh) { HinhAnh = hinhAnh; }
+    private String HinhAnh;
+    public String getHinhAnh() { return HinhAnh; }
+    public void setHinhAnh(String hinhAnh) { HinhAnh = hinhAnh; }
 
 
     public int getMaMonAn() {

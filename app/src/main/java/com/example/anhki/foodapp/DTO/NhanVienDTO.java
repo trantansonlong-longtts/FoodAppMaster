@@ -5,9 +5,11 @@ public class NhanVienDTO {
     // --- Sắp xếp lại các biến cho dễ đọc ---
     // Các biến kiểu int
     private int MANV;
+
     private int MAQUYEN;
 
     // Các biến kiểu String
+    private String UID;
     private String TENDANGNHAP;
     private String MATKHAU;
     private String GIOITINH;
@@ -89,4 +91,9 @@ public class NhanVienDTO {
     public void setCMND(String CMND) {
         this.CMND = CMND;
     }
+
+    public void setUID(String UID) {this.UID = UID;}
+    public String getUID() {return UID;}
+
+
 }

@@ -3,13 +3,15 @@ package com.example.anhki.foodapp.DTO;
 public class LoaiMonAnDTO {
     private int MaLoai;
     private String TenLoai;
-    private byte[] HinhAnh;
+    private String documentId;
+    //private byte[] HinhAnh;
+    private String HinhAnh;
 
-    public byte[] getHinhAnh() {
+    public String getHinhAnh() {
         return HinhAnh;
     }
 
-    public void setHinhAnh(byte[] hinhAnh) {
+    public void setHinhAnh(String hinhAnh) {
         HinhAnh = hinhAnh;
     }
 
@@ -27,5 +29,11 @@ public class LoaiMonAnDTO {
 
     public void setTenLoai(String tenLoai) {
         TenLoai = tenLoai;
+    }
+    public String getDocumentId() {
+        return documentId;
+    }
+    public void setDocumentId(String documentId) {
+        this.documentId = documentId;
     }
 }

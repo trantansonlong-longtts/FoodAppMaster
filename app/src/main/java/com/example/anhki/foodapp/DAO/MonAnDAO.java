@@ -61,7 +61,7 @@ public class MonAnDAO {
                     monAnDTO.setTenMonAn(cursor.getString(colTenMon));
                     monAnDTO.setGiaTien(cursor.getInt(colGiaTien));
                     monAnDTO.setMaLoai(cursor.getInt(colMaLoai));
-                    monAnDTO.setHinhAnh(cursor.getBlob(colHinhAnh));
+                    //monAnDTO.setHinhAnh(cursor.getBlob(colHinhAnh));
                     monAnDTOs.add(monAnDTO);
                 } while (cursor.moveToNext());
             }
@@ -88,7 +88,7 @@ public class MonAnDAO {
             monAnDTO.setTenMonAn(cursor.getString(cursor.getColumnIndexOrThrow(CreateDatabase.TB_MONAN_TENMONAN)));
             monAnDTO.setGiaTien(cursor.getInt(cursor.getColumnIndexOrThrow(CreateDatabase.TB_MONAN_GIATIEN)));
             monAnDTO.setMaLoai(cursor.getInt(cursor.getColumnIndexOrThrow(CreateDatabase.TB_MONAN_MALOAI)));
-            monAnDTO.setHinhAnh(cursor.getBlob(cursor.getColumnIndexOrThrow(CreateDatabase.TB_MONAN_HINHANH)));
+            //monAnDTO.setHinhAnh(cursor.getBlob(cursor.getColumnIndexOrThrow(CreateDatabase.TB_MONAN_HINHANH)));
         }
         cursor.close();
         return monAnDTO;

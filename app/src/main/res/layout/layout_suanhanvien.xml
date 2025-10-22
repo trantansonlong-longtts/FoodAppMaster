@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <TextView
+        android:id="@+id/txtTieuDeSuaNV"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Cập nhật thông tin nhân viên"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="24dp"/>
+
+    <EditText
+        android:id="@+id/edSuaTenDangNhap"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Tên đăng nhập (Email)"
+        android:enabled="false"/>
+
+    <EditText
+        android:id="@+id/edSuaCMND"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Số CCCD"
+        android:inputType="text"/>
+
+    <EditText
+        android:id="@+id/edSuaNgaySinh"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Ngày sinh (dd/MM/yyyy)"
+        android:focusable="false"/>
+
+    <RadioGroup
+        android:id="@+id/rgSuaGioiTinh"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="8dp">
+        <RadioButton android:id="@+id/rdSuaNam" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Nam"/>
+        <RadioButton android:id="@+id/rdSuaNu" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Nữ"/>
+    </RadioGroup>
+
+    <Spinner
+        android:id="@+id/spinSuaQuyen"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"/>
+
+    <Button
+        android:id="@+id/btnLuuSuaNV"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Lưu thay đổi"
+        android:layout_marginTop="24dp"/>
+
+    <Button
+        android:id="@+id/btnThoatSuaNV"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Thoát"
+        style="?attr/materialButtonOutlinedStyle"
+        android:layout_marginTop="8dp"/>
+
+</LinearLayout>

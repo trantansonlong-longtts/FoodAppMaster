@@ -42,6 +42,7 @@ public class HienThiDanhSachMonAnFragment extends Fragment {
     private int maban;
     private int maloai;
     private int maquyen;
+    private String loaiMonAnDocId;
 
     // Launcher để nhận kết quả từ màn hình Thêm/Sửa Món ăn và SoLuong
     private final ActivityResultLauncher<Intent> monAnLauncher = registerForActivityResult(
@@ -59,6 +60,7 @@ public class HienThiDanhSachMonAnFragment extends Fragment {
         // Lấy dữ liệu
         Bundle bundle = getArguments();
         if (bundle != null) {
+            loaiMonAnDocId = bundle.getString("loaiMonAnDocId");
             maloai = bundle.getInt("maloai", -1);
             maban = bundle.getInt("maban", 0);
         }
@@ -128,7 +130,10 @@ public class HienThiDanhSachMonAnFragment extends Fragment {
             public boolean onMenuItemSelected(@NonNull MenuItem menuItem) {
                 if (menuItem.getItemId() == R.id.itThemMonAn) {
                     Intent intent = new Intent(getActivity(), ThemThucDonActivity.class);
-                    intent.putExtra("maloai", maloai); // Gửi kèm mã loại để biết thêm món vào loại nào
+
+                    // SỬA LẠI DÒNG NÀY: Gửi đúng key và đúng giá trị (String ID)
+                    intent.putExtra("loaiMonAnDocId", loaiMonAnDocId);
+
                     monAnLauncher.launch(intent);
                     return true;
                 }

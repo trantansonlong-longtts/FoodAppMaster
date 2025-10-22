@@ -85,6 +85,8 @@ package com.example.anhki.foodapp.CustomAdapter;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.util.Base64;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -153,15 +155,23 @@ public class AdapterHienThiDanhSachMonAn extends BaseAdapter {
         MonAnDTO monAnDTO = monAnDTOList.get(position);
 
         // SỬA LỖI HIỂN THỊ HÌNH ẢNH
-        byte[] hinhAnh = monAnDTO.getHinhAnh();
-        if (hinhAnh != null && hinhAnh.length > 0) {
-            // Chuyển mảng byte thành đối tượng Bitmap
-            Bitmap bitmap = BitmapFactory.decodeByteArray(hinhAnh, 0, hinhAnh.length);
-            viewHolder.imHinhMonAn.setImageBitmap(bitmap);
-        } else {
-            // Nếu không có ảnh, hiển thị một ảnh mặc định
-            viewHolder.imHinhMonAn.setImageResource(R.drawable.backgroundheader1);
+        String hinhAnhBase64 = monAnDTO.getHinhAnh();
+        // KIỂM TRA VÀ GIẢI MÃ
+        if (hinhAnhBase64 != null && !hinhAnhBase64.isEmpty()) {
+            try {
+                // Chuyển String Base64 thành byte[]
+                byte[] hinhAnhBytes = Base64.decode(hinhAnhBase64, Base64.DEFAULT);
+                // Chuyển byte[] thành Bitmap
+                Bitmap bitmap = BitmapFactory.decodeByteArray(hinhAnhBytes, 0, hinhAnhBytes.length);
+                viewHolder.imHinhMonAn.setImageBitmap(bitmap);
+            } catch (IllegalArgumentException | OutOfMemoryError e) {
+                Log.e("AdapterLoaiMonAn", "Lỗi giải mã ảnh Base64", e);
+                viewHolder.imHinhMonAn.setImageResource(R.drawable.logodangnhap); // Ảnh lỗi
+            }
         }
+         else {
+        viewHolder.imHinhMonAn.setImageResource(R.drawable.logodangnhap); // Ảnh mặc định
+    }
 
         viewHolder.txtTenMonAn.setText(monAnDTO.getTenMonAn());
 

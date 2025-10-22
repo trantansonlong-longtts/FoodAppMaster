@@ -1,6 +1,7 @@
 package com.example.anhki.foodapp.DTO;
 
 public class BanAnDTO {
+    private String documentId;
     private int MaBan;
     private String TenBan;
     private boolean DuocChon;
@@ -32,4 +33,11 @@ public class BanAnDTO {
     private String TinhTrang;
     public String getTinhTrang() { return TinhTrang; }
     public void setTinhTrang(String tinhTrang) { TinhTrang = tinhTrang; }
+    // THÊM GETTER/SETTER NÀY
+    public String getDocumentId() {
+        return documentId;
+    }
+    public void setDocumentId(String documentId) {
+        this.documentId = documentId;
+    }
  }

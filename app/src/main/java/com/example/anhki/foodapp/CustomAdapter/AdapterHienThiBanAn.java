@@ -2,12 +2,15 @@
 package com.example.anhki.foodapp.CustomAdapter;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+
 import androidx.annotation.NonNull;
 import androidx.cardview.widget.CardView;
 import androidx.core.content.ContextCompat;
@@ -19,13 +22,15 @@ import com.example.anhki.foodapp.R;
 
 import java.util.List;
 
+// Đổi sang kế thừa RecyclerView.Adapter và dùng ViewHolder bên trong nó
 public class AdapterHienThiBanAn extends RecyclerView.Adapter<AdapterHienThiBanAn.ViewHolder> {
 
+    // Interface giữ nguyên
     public interface BanAnClickListener {
-        void onTableClick(int position);
+        void onTableClick(int position); // Đổi tên cho rõ nghĩa (click vào cả thẻ CardView)
         void onGoiMonClick(int position);
         void onThanhToanClick(int position);
-        void onSuaTenClick(int position);
+        void onSuaTenClick(int position); // Sửa tên giờ kích hoạt bằng Long Click
         void onXoaClick(int position);
     }
 
@@ -33,17 +38,18 @@ public class AdapterHienThiBanAn extends RecyclerView.Adapter<AdapterHienThiBanA
     private final List<BanAnDTO> banAnDTOList;
     private final int maquyen;
     private final BanAnClickListener listener;
-    private int expandedPosition = -1;
+    private int expandedPosition = -1; // Vị trí item đang hiển thị nút
 
     public AdapterHienThiBanAn(Context context, int layout, List<BanAnDTO> banAnDTOList, int maquyen, BanAnClickListener listener) {
         this.context = context;
-        // layout không cần dùng nữa nhưng giữ lại cho constructor khớp
+        // layout không cần dùng nữa
         this.banAnDTOList = banAnDTOList;
         this.maquyen = maquyen;
         this.listener = listener;
     }
 
-    // 1. ViewHolder giờ sẽ extends RecyclerView.ViewHolder
+    // --- ViewHolder Class ---
+    // Class ViewHolder phải extends RecyclerView.ViewHolder
     public static class ViewHolder extends RecyclerView.ViewHolder {
         TextView txtTenBanAn;
         ImageView imBanAn;
@@ -53,6 +59,7 @@ public class AdapterHienThiBanAn extends RecyclerView.Adapter<AdapterHienThiBanA
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
+            // Ánh xạ View ngay trong constructor của ViewHolder
             txtTenBanAn = itemView.findViewById(R.id.txtTenBanAn);
             imBanAn = itemView.findViewById(R.id.imBanAn);
             cardBanAn = itemView.findViewById(R.id.card_banan);
@@ -63,62 +70,70 @@ public class AdapterHienThiBanAn extends RecyclerView.Adapter<AdapterHienThiBanA
         }
     }
 
-    // 2. Phương thức này tạo ra View mới (tương đương phần if (convertView == null))
+    // --- Các phương thức bắt buộc của RecyclerView.Adapter ---
+
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        // Tạo View mới từ file layout XML
         View view = LayoutInflater.from(context).inflate(R.layout.custom_layout_hienthibanan, parent, false);
         return new ViewHolder(view);
     }
 
-    // 3. Phương thức này gán dữ liệu vào View (tương đương phần còn lại của getView)
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
+        // Lấy dữ liệu tại vị trí 'position'
         BanAnDTO banAn = banAnDTOList.get(position);
+
+        // Gán dữ liệu vào ViewHolder
         holder.txtTenBanAn.setText(banAn.getTenBan());
 
-        // Logic hiển thị trạng thái và phân quyền (giống hệt code cũ)
+        // 1. HIỂN THỊ TRẠNG THÁI BẰNG MÀU SẮC VÀ ICON
         if ("true".equals(banAn.getTinhTrang())) {
             holder.cardBanAn.setCardBackgroundColor(ContextCompat.getColor(context, R.color.colorOccupied));
+            holder.imBanAn.setImageResource(R.drawable.banantrue); // Icon bàn có khách
         } else {
             holder.cardBanAn.setCardBackgroundColor(ContextCompat.getColor(context, R.color.colorFree));
+            holder.imBanAn.setImageResource(R.drawable.banan); // Icon bàn trống
         }
 
+        // 2. HIỂN THỊ / ẨN CÁC NÚT BẤM
         boolean isExpanded = (position == expandedPosition);
         holder.layoutButtons.setVisibility(isExpanded ? View.VISIBLE : View.GONE);
 
-        // Trong AdapterHienThiBanAn.java -> getView()
-
+        // 3. PHÂN QUYỀN
         if (maquyen == Contants.QUYEN_QUANLY) {
-            // Quản lý được thấy nút Xóa và long-click tên để Sửa
+            // Quản lý: Thấy nút Xóa, nhấn giữ itemView để sửa
             holder.imAnButton.setVisibility(isExpanded ? View.VISIBLE : View.GONE);
-
-            // THAY ĐỔI Ở ĐÂY: Dùng setOnLongClickListener
-            holder.txtTenBanAn.setOnLongClickListener(v -> {
+            // Gán Long Click cho toàn bộ item View
+            holder.itemView.setOnLongClickListener(v -> {
                 if(listener != null) {
                     listener.onSuaTenClick(holder.getAdapterPosition());
                 }
-                return true; // Rất quan trọng: trả về true để báo hiệu sự kiện đã được xử lý
+                return true; // Đã xử lý long click
             });
-
         } else {
-            // Nhân viên không thấy nút Xóa và không long-click tên để Sửa được
+            // Nhân viên: Không thấy nút Xóa, không nhấn giữ để sửa
             holder.imAnButton.setVisibility(View.GONE);
-            holder.txtTenBanAn.setOnLongClickListener(null); // Vô hiệu hóa long click
+            holder.itemView.setOnLongClickListener(null); // Vô hiệu hóa long click
         }
 
-        // 4. Sửa lại cách xử lý click
+        // 4. GÁN SỰ KIỆN CLICK
+        // Click vào hình cái bàn (hoặc cả CardView) để hiện/ẩn các nút
         holder.imBanAn.setOnClickListener(v -> {
-            int oldPosition = expandedPosition;
-            expandedPosition = isExpanded ? -1 : holder.getAdapterPosition();
+            // holder.itemView.setOnClickListener(v -> { // Nếu muốn click cả CardView
+            int clickedPosition = holder.getAdapterPosition();
+            if (clickedPosition == RecyclerView.NO_POSITION) return; // Kiểm tra an toàn
 
-            // Thông báo cho RecyclerView cập nhật lại item cũ và mới
-            // Đây là điểm mấu chốt giúp nó hoạt động mượt mà
-            if(oldPosition != -1) notifyItemChanged(oldPosition);
-            if(expandedPosition != -1) notifyItemChanged(expandedPosition);
+            int oldPosition = expandedPosition;
+            expandedPosition = isExpanded ? -1 : clickedPosition;
+
+            // Thông báo hiệu quả hơn cho RecyclerView
+            if (oldPosition != -1) notifyItemChanged(oldPosition);
+            if (expandedPosition != -1) notifyItemChanged(expandedPosition);
         });
 
-        // Gán sự kiện cho các nút, dùng holder.getAdapterPosition() để lấy vị trí chính xác
+        // Gán sự kiện cho các nút, dùng holder.getAdapterPosition()
         holder.imGoiMon.setOnClickListener(v -> {
             if (listener != null) listener.onGoiMonClick(holder.getAdapterPosition());
         });
@@ -130,9 +145,9 @@ public class AdapterHienThiBanAn extends RecyclerView.Adapter<AdapterHienThiBanA
         });
     }
 
-    // 5. Phương thức này trả về số lượng item
     @Override
     public int getItemCount() {
+        // Trả về số lượng item trong danh sách
         return banAnDTOList.size();
     }
 }

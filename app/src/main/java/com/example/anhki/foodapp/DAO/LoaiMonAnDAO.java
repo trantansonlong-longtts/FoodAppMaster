@@ -62,7 +62,8 @@ public class LoaiMonAnDAO {
                     LoaiMonAnDTO loaiMonAnDTO = new LoaiMonAnDTO();
                     loaiMonAnDTO.setMaLoai(cursor.getInt(colMaLoai));
                     loaiMonAnDTO.setTenLoai(cursor.getString(colTenLoai));
-                    loaiMonAnDTO.setHinhAnh(cursor.getBlob(colHinhAnh)); // Lấy thêm hình ảnh
+                    //tạm bỏ
+                    //loaiMonAnDTO.setHinhAnh(cursor.getBlob(colHinhAnh)); // Lấy thêm hình ảnh
                     loaiMonAnDTOs.add(loaiMonAnDTO);
                 } while (cursor.moveToNext());
             }
@@ -86,7 +87,7 @@ public class LoaiMonAnDAO {
                 loaiMonAnDTO = new LoaiMonAnDTO();
                 loaiMonAnDTO.setMaLoai(cursor.getInt(cursor.getColumnIndex(CreateDatabase.TB_LOAIMONAN_MALOAI)));
                 loaiMonAnDTO.setTenLoai(cursor.getString(cursor.getColumnIndex(CreateDatabase.TB_LOAIMONAN_TENLOAI)));
-                loaiMonAnDTO.setHinhAnh(cursor.getBlob(cursor.getColumnIndex(CreateDatabase.TB_LOAIMONAN_HINHANH)));
+                //loaiMonAnDTO.setHinhAnh(cursor.getBlob(cursor.getColumnIndex(CreateDatabase.TB_LOAIMONAN_HINHANH)));
             }
         } finally {
             if(cursor != null) cursor.close();

@@ -9,20 +9,29 @@ import android.graphics.drawable.ColorDrawable;
 import android.icu.util.Calendar;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.widget.*;
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import com.example.anhki.foodapp.DAO.NhanVienDAO;
 import com.example.anhki.foodapp.DAO.QuyenDAO;
 import com.example.anhki.foodapp.DTO.NhanVienDTO;
 import com.example.anhki.foodapp.DTO.QuyenDTO;
+import com.example.anhki.foodapp.Contants;
+
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class DangKyActivity extends AppCompatActivity implements View.OnClickListener {
-
+    private static final String TAG = "DangKyActivity"; // Thêm TAG để debug
     private EditText edTenDangNhap, edMatKhau, edNgaySinh, edCMND;
     private Button btnDongY, btnThoat;
     private TextView txtTieuDeDangKy;
@@ -30,19 +39,25 @@ public class DangKyActivity extends AppCompatActivity implements View.OnClickLis
     private Spinner spinQuyen;
 
     private int manhanvien = 0; // =0 là thêm mới, !=0 là cập nhật
-
-    private NhanVienDAO nhanVienDAO;
+    private boolean laQuanLyDauTien = false;
+    // Firebase
+    private FirebaseAuth mAuth;
+    private FirebaseFirestore db;
+    //private NhanVienDAO nhanVienDAO;
     private QuyenDAO quyenDAO;
     private List<QuyenDTO> quyenDTOList;
-    private boolean laQuanLyDauTien;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.layout_dangky);
 
+        // Khởi tạo Firebase Auth và Firestore
+        mAuth = FirebaseAuth.getInstance();
+        db = FirebaseFirestore.getInstance();
         // Khởi tạo DAO
-        nhanVienDAO = new NhanVienDAO(this);
+        //nhanVienDAO = new NhanVienDAO(this);
         quyenDAO = new QuyenDAO(this);
 
         // Ánh xạ View
@@ -57,21 +72,28 @@ public class DangKyActivity extends AppCompatActivity implements View.OnClickLis
         hienThiDanhSachQuyen();
 
         // Kiểm tra xem đang sửa hay thêm mới
-        manhanvien = getIntent().getIntExtra("manhanvien", 0);
-        if (manhanvien != 0) {
-            txtTieuDeDangKy.setText(R.string.capnhatnhanvien);
-            hienThiThongTinNhanVien();
-        }
+        //tạm bỏ
+//        manhanvien = getIntent().getIntExtra("manhanvien", 0);
+//        if (manhanvien != 0) {
+//            txtTieuDeDangKy.setText(R.string.capnhatnhanvien);
+//            hienThiThongTinNhanVien();
+//        }
 
         laQuanLyDauTien = getIntent().getBooleanExtra("laQuanLyDauTien", false);
         if (laQuanLyDauTien) {
             // Nếu là Quản lý đầu tiên, ẩn Spinner đi và mặc định quyền là Quản lý
-            spinQuyen.setVisibility(View.GONE);
-            // Trong hàm luuNhanVien(), bạn sẽ cần gán cứng MAQUYEN = Constants.QUYEN_QUANLY
+            //spinQuyen.setVisibility(View.GONE);
+            txtTieuDeDangKy.setText("Tạo tài khoản Quản lý");
+            // Khóa Spinner lại, mặc định chọn Quản lý
+            spinQuyen.setSelection(0); // Giả sử Quản lý luôn ở vị trí đầu tiên
+            spinQuyen.setEnabled(false);
 
-            // Hoặc đơn giản hơn là khóa Spinner lại
-            // spinQuyen.setSelection(0); // Giả sử Quản lý ở vị trí 0
-            // spinQuyen.setEnabled(false);
+        }
+        // Chức năng sửa sẽ phức tạp hơn, tạm thời chỉ tập trung vào Đăng ký mới
+        manhanvien = getIntent().getIntExtra("manhanvien", 0);
+        if (manhanvien != 0) {
+            Toast.makeText(this, "Chức năng sửa chưa hỗ trợ Firebase!", Toast.LENGTH_SHORT).show();
+            btnDongY.setEnabled(false); // Vô hiệu hóa nút Đồng ý nếu là sửa
         }
     }
 
@@ -96,46 +118,100 @@ public class DangKyActivity extends AppCompatActivity implements View.OnClickLis
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, dataAdapter);
         spinQuyen.setAdapter(adapter);
     }
+// Phương thức hienThiThongTinNhanVien() tạm thời không dùng nữa vì chỉ làm Đăng ký
+//    private void hienThiThongTinNhanVien() {
+//        NhanVienDTO nhanVienDTO = nhanVienDAO.LayDanhSachNhanVienTheoMa(manhanvien);
+//
+//        // CẢI TIẾN: Kiểm tra null để tránh crash
+//        if (nhanVienDTO == null) {
+//            Toast.makeText(this, "Không tìm thấy thông tin nhân viên", Toast.LENGTH_SHORT).show();
+//            finish();
+//            return;
+//        }
+//
+//        edTenDangNhap.setText(nhanVienDTO.getTENDANGNHAP());
+//        edMatKhau.setText(nhanVienDTO.getMATKHAU());
+//        edCMND.setText(nhanVienDTO.getCMND()); // Giả sử CMND là String
+//        edNgaySinh.setText(nhanVienDTO.getNGAYSINH());
+//
+//        if ("Nam".equals(nhanVienDTO.getGIOITINH())) {
+//            rgGioiTinh.check(R.id.rdNam);
+//        } else {
+//            rgGioiTinh.check(R.id.rdNu);
+//        }
+//
+//        // CẢI TIẾN: Sửa lỗi logic quan trọng - Hiển thị đúng quyền của nhân viên trên Spinner
+//        int maQuyenCuaNhanVien = nhanVienDTO.getMAQUYEN();
+//        for (int i = 0; i < quyenDTOList.size(); i++) {
+//            if (quyenDTOList.get(i).getMaQuyen() == maQuyenCuaNhanVien) {
+//                spinQuyen.setSelection(i);
+//                break;
+//            }
+//        }
+//    }
 
-    private void hienThiThongTinNhanVien() {
-        NhanVienDTO nhanVienDTO = nhanVienDAO.LayDanhSachNhanVienTheoMa(manhanvien);
+//    private void dongY() {
+//        String tenDN = edTenDangNhap.getText().toString().trim();
+//        String matKhau = edMatKhau.getText().toString().trim();
+//        String cmnd = edCMND.getText().toString().trim();
+//
+//        // Validate
+//        if (TextUtils.isEmpty(tenDN) || TextUtils.isEmpty(matKhau)) {
+//            Toast.makeText(this, "Tên đăng nhập và mật khẩu không được trống", Toast.LENGTH_SHORT).show();
+//            return;
+//        }
+//        if (rgGioiTinh.getCheckedRadioButtonId() == -1) {
+//            Toast.makeText(this, "Vui lòng chọn giới tính", Toast.LENGTH_SHORT).show();
+//            return;
+//        }
+//
+//        // Lấy dữ liệu
+//        NhanVienDTO nhanVienDTO = new NhanVienDTO();
+//        nhanVienDTO.setTENDANGNHAP(tenDN);
+//        nhanVienDTO.setMATKHAU(matKhau);
+//        nhanVienDTO.setCMND(cmnd); // Luôn dùng String cho CMND/CCCD
+//        nhanVienDTO.setNGAYSINH(edNgaySinh.getText().toString());
+//        nhanVienDTO.setGIOITINH((rgGioiTinh.getCheckedRadioButtonId() == R.id.rdNam) ? "Nam" : "Nữ");
+//
+//        int vitri = spinQuyen.getSelectedItemPosition();
+//        nhanVienDTO.setMAQUYEN(quyenDTOList.get(vitri).getMaQuyen());
+//        // SỬA LỖI: Gán quyền chính xác cho trường hợp Quản lý đầu tiên
+//        if (laQuanLyDauTien) {
+//            nhanVienDTO.setMAQUYEN(Contants.QUYEN_QUANLY); // Gán cứng quyền Quản lý
+//        } else {
+//            if (quyenDTOList != null && !quyenDTOList.isEmpty()){
+//                nhanVienDTO.setMAQUYEN(quyenDTOList.get(vitri).getMaQuyen());
+//            }
+//        }
+//
+//        // Thực hiện thêm hoặc sửa
+//        boolean kiemtra;
+//        if (manhanvien != 0) {
+//            nhanVienDTO.setMANV(manhanvien);
+//            kiemtra = nhanVienDAO.SuaNhanVien(nhanVienDTO);
+//            Toast.makeText(this, kiemtra ? "Cập nhật thành công" : "Cập nhật thất bại", Toast.LENGTH_SHORT).show();
+//        } else {
+//            kiemtra = nhanVienDAO.ThemNhanVien(nhanVienDTO);
+//            Toast.makeText(this, kiemtra ? "Thêm thành công" : "Thêm thất bại", Toast.LENGTH_SHORT).show();
+//        }
+//
+//        if (kiemtra) {
+//            setResult(Activity.RESULT_OK); // Đặt kết quả để màn hình trước có thể nhận biết
+//            finish();
+//        }
+//
+//    }
 
-        // CẢI TIẾN: Kiểm tra null để tránh crash
-        if (nhanVienDTO == null) {
-            Toast.makeText(this, "Không tìm thấy thông tin nhân viên", Toast.LENGTH_SHORT).show();
-            finish();
-            return;
-        }
-
-        edTenDangNhap.setText(nhanVienDTO.getTENDANGNHAP());
-        edMatKhau.setText(nhanVienDTO.getMATKHAU());
-        edCMND.setText(nhanVienDTO.getCMND()); // Giả sử CMND là String
-        edNgaySinh.setText(nhanVienDTO.getNGAYSINH());
-
-        if ("Nam".equals(nhanVienDTO.getGIOITINH())) {
-            rgGioiTinh.check(R.id.rdNam);
-        } else {
-            rgGioiTinh.check(R.id.rdNu);
-        }
-
-        // CẢI TIẾN: Sửa lỗi logic quan trọng - Hiển thị đúng quyền của nhân viên trên Spinner
-        int maQuyenCuaNhanVien = nhanVienDTO.getMAQUYEN();
-        for (int i = 0; i < quyenDTOList.size(); i++) {
-            if (quyenDTOList.get(i).getMaQuyen() == maQuyenCuaNhanVien) {
-                spinQuyen.setSelection(i);
-                break;
-            }
-        }
-    }
-
-    private void dongY() {
-        String tenDN = edTenDangNhap.getText().toString().trim();
-        String matKhau = edMatKhau.getText().toString().trim();
+    private void dangKyTaiKhoan() {
+        String email = edTenDangNhap.getText().toString().trim(); // Dùng Tên đăng nhập làm Email
+        String password = edMatKhau.getText().toString().trim();
         String cmnd = edCMND.getText().toString().trim();
+        String ngaySinh = edNgaySinh.getText().toString().trim();
+        String gioiTinh = (rgGioiTinh.getCheckedRadioButtonId() == R.id.rdNam) ? "Nam" : "Nữ";
 
         // Validate
-        if (TextUtils.isEmpty(tenDN) || TextUtils.isEmpty(matKhau)) {
-            Toast.makeText(this, "Tên đăng nhập và mật khẩu không được trống", Toast.LENGTH_SHORT).show();
+        if (TextUtils.isEmpty(email) || TextUtils.isEmpty(password)) {
+            Toast.makeText(this, "Email và Mật khẩu không được trống", Toast.LENGTH_SHORT).show();
             return;
         }
         if (rgGioiTinh.getCheckedRadioButtonId() == -1) {
@@ -143,43 +219,63 @@ public class DangKyActivity extends AppCompatActivity implements View.OnClickLis
             return;
         }
 
-        // Lấy dữ liệu
-        NhanVienDTO nhanVienDTO = new NhanVienDTO();
-        nhanVienDTO.setTENDANGNHAP(tenDN);
-        nhanVienDTO.setMATKHAU(matKhau);
-        nhanVienDTO.setCMND(cmnd); // Luôn dùng String cho CMND/CCCD
-        nhanVienDTO.setNGAYSINH(edNgaySinh.getText().toString());
-        nhanVienDTO.setGIOITINH((rgGioiTinh.getCheckedRadioButtonId() == R.id.rdNam) ? "Nam" : "Nữ");
+        // Hiện loading indicator (nếu có)
+        // ...
 
-        int vitri = spinQuyen.getSelectedItemPosition();
-        nhanVienDTO.setMAQUYEN(quyenDTOList.get(vitri).getMaQuyen());
-        // SỬA LỖI: Gán quyền chính xác cho trường hợp Quản lý đầu tiên
-        if (laQuanLyDauTien) {
-            nhanVienDTO.setMAQUYEN(Contants.QUYEN_QUANLY); // Gán cứng quyền Quản lý
-        } else {
-            if (quyenDTOList != null && !quyenDTOList.isEmpty()){
-                nhanVienDTO.setMAQUYEN(quyenDTOList.get(vitri).getMaQuyen());
-            }
-        }
-
-        // Thực hiện thêm hoặc sửa
-        boolean kiemtra;
-        if (manhanvien != 0) {
-            nhanVienDTO.setMANV(manhanvien);
-            kiemtra = nhanVienDAO.SuaNhanVien(nhanVienDTO);
-            Toast.makeText(this, kiemtra ? "Cập nhật thành công" : "Cập nhật thất bại", Toast.LENGTH_SHORT).show();
-        } else {
-            kiemtra = nhanVienDAO.ThemNhanVien(nhanVienDTO);
-            Toast.makeText(this, kiemtra ? "Thêm thành công" : "Thêm thất bại", Toast.LENGTH_SHORT).show();
-        }
-
-        if (kiemtra) {
-            setResult(Activity.RESULT_OK); // Đặt kết quả để màn hình trước có thể nhận biết
-            finish();
-        }
-
+        // 1. Tạo tài khoản trên Firebase Authentication
+        mAuth.createUserWithEmailAndPassword(email, password)
+                .addOnCompleteListener(this, task -> {
+                    if (task.isSuccessful()) {
+                        // Đăng ký Auth thành công
+                        Log.d(TAG, "createUserWithEmail:success");
+                        FirebaseUser user = mAuth.getCurrentUser();
+                        if (user != null) {
+                            String uid = user.getUid();
+                            // 2. Lưu thông tin bổ sung vào Firestore
+                            luuThongTinNhanVienVaoFirestore(uid, email, cmnd, ngaySinh, gioiTinh);
+                        }
+                    } else {
+                        // Đăng ký Auth thất bại
+                        Log.w(TAG, "createUserWithEmail:failure", task.getException());
+                        Toast.makeText(DangKyActivity.this, "Đăng ký thất bại: " + task.getException().getMessage(),
+                                Toast.LENGTH_LONG).show();
+                        // Ẩn loading indicator
+                    }
+                });
     }
 
+    private void luuThongTinNhanVienVaoFirestore(String uid, String email, String cmnd, String ngaySinh, String gioiTinh) {
+        int maQuyen;
+        if (laQuanLyDauTien) {
+            maQuyen = Contants.QUYEN_QUANLY;
+        } else {
+            int vitri = spinQuyen.getSelectedItemPosition();
+            maQuyen = (quyenDTOList != null && !quyenDTOList.isEmpty()) ? quyenDTOList.get(vitri).getMaQuyen() : Contants.QUYEN_NHANVIEN; // Mặc định là Nhân viên nếu có lỗi
+        }
+
+        // Tạo một Map để lưu vào Firestore (linh hoạt hơn DTO)
+        Map<String, Object> nhanVienData = new HashMap<>();
+        nhanVienData.put("tenDangNhap", email); // Lưu lại email/tên đăng nhập
+        nhanVienData.put("cmnd", cmnd);
+        nhanVienData.put("ngaySinh", ngaySinh);
+        nhanVienData.put("gioiTinh", gioiTinh);
+        nhanVienData.put("maQuyen", maQuyen);
+
+        // Lưu vào collection "nhanVien" với document ID là UID của user
+        db.collection("nhanVien").document(uid)
+                .set(nhanVienData)
+                .addOnSuccessListener(aVoid -> {
+                    Log.d(TAG, "Lưu thông tin nhân viên vào Firestore thành công!");
+                    Toast.makeText(DangKyActivity.this, "Đăng ký thành công!", Toast.LENGTH_SHORT).show();
+                    setResult(Activity.RESULT_OK);
+                    finish(); // Đóng màn hình đăng ký
+                })
+                .addOnFailureListener(e -> {
+                    Log.w(TAG, "Lỗi lưu thông tin vào Firestore", e);
+                    Toast.makeText(DangKyActivity.this, "Lỗi lưu thông tin bổ sung.", Toast.LENGTH_SHORT).show();
+                    // Có thể cân nhắc xóa tài khoản Auth đã tạo nếu lưu Firestore lỗi? (logic phức tạp hơn)
+                });
+    }
     @SuppressLint("NewApi")
     private void chooseDay() {
         Calendar cal = Calendar.getInstance();
@@ -192,11 +288,23 @@ public class DangKyActivity extends AppCompatActivity implements View.OnClickLis
         dialog.show();
     }
 
+//    @Override
+//    public void onClick(View v) {
+//        int id = v.getId();
+//        if (id == R.id.btnDongYDK) {
+//            dongY();
+//        } else if (id == R.id.btnThoatDK) {
+//            finish();
+//        } else if (id == R.id.edNgaySinhDK) {
+//            chooseDay();
+//        }
+//    }
     @Override
     public void onClick(View v) {
         int id = v.getId();
         if (id == R.id.btnDongYDK) {
-            dongY();
+            // Thay vì gọi dongY() cũ, gọi hàm đăng ký Firebase mới
+            dangKyTaiKhoan();
         } else if (id == R.id.btnThoatDK) {
             finish();
         } else if (id == R.id.edNgaySinhDK) {
@@ -208,9 +316,9 @@ public class DangKyActivity extends AppCompatActivity implements View.OnClickLis
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (nhanVienDAO != null) {
-            nhanVienDAO.close();
-        }
+//        if (nhanVienDAO != null) {
+//            nhanVienDAO.close();
+//        }
         if (quyenDAO != null) {
             quyenDAO.close();
         }
