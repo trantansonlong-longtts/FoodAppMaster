@@ -61,13 +61,25 @@
         android:textColor="@color/colorBlack"
         android:text="@string/dongy" />
 
-<!--    <Button-->
-<!--        android:id="@+id/btnDongYDN2"-->
-<!--        style="@style/TransparentButtonStyle"-->
-<!--        android:layout_width="match_parent"-->
-<!--        android:layout_height="wrap_content"-->
-<!--        android:layout_marginLeft="30dp"-->
-<!--        android:layout_marginRight="30dp"-->
-<!--        android:textColor="@color/colorBlack"-->
-<!--        android:text="@string/dangky" />-->
+    <Button
+        android:id="@+id/btnDongYDN2"
+        style="@style/TransparentButtonStyle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="30dp"
+        android:layout_marginRight="30dp"
+        android:text="@string/dangky"
+        android:textColor="@color/colorBlack" />
+    <TextView
+        android:id="@+id/txtQuenMatKhau"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Quên mật khẩu?"
+        android:textColor="@color/colorBlack"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="16dp"
+        android:padding="8dp"
+        android:clickable="true"
+        android:focusable="true"
+        android:background="?attr/selectableItemBackground"/>
 </LinearLayout>

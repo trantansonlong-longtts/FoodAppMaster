@@ -1,5 +1,6 @@
 plugins {
     alias(libs.plugins.android.application)
+    id 'com.google.gms.google-services'
 }
 
 android {
@@ -33,6 +34,23 @@ dependencies {
     implementation libs.appcompat
     implementation libs.material
     testImplementation libs.junit
+    // Firebase BoM (Bill of Materials - Quản lý phiên bản)
+    // Thay VERSION bằng phiên bản mới nhất, ví dụ: 32.8.1
+    implementation platform('com.google.firebase:firebase-bom:34.4.0')
+
+    // Firestore Database
+    implementation 'com.google.firebase:firebase-firestore'
+
+    // Firebase Authentication (Đăng nhập/Đăng ký)
+    implementation 'com.google.firebase:firebase-auth'
+
+    // Firebase Storage (Lưu trữ ảnh)
+    implementation 'com.google.firebase:firebase-storage'
+
+    // (Tùy chọn) Firebase Analytics
+    implementation 'com.google.firebase:firebase-analytics'
+
+    // --- KẾT THÚC PHẦN THÊM FIREBASE ---
     androidTestImplementation libs.ext.junit
     androidTestImplementation libs.espresso.core
     implementation 'de.hdodenhof:circleimageview:3.1.0'

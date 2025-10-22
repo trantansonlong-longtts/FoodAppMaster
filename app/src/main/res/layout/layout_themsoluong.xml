@@ -1,42 +1,63 @@
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
-    android:gravity="center"
-    android:padding="16dp"
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="24dp"
+    android:gravity="center_horizontal"
+    android:layout_margin="16dp"
+    android:background="@color/colorWhite"> <TextView
+    android:id="@+id/txtTenMonDisplay"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:text="Món: [Tên món ăn]"
+    android:textSize="18sp"
+    android:textStyle="bold"
+    android:textColor="@android:color/black"
+    android:layout_marginBottom="16dp"/>
 
     <LinearLayout
-        android:orientation="horizontal"
-        android:gravity="center"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="24dp">
 
-        <Button
+        <ImageButton
             android:id="@+id/btnGiamSoLuong"
             android:layout_width="48dp"
             android:layout_height="48dp"
-            android:text="-" />
+            android:src="@drawable/ic_remove"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Giảm số lượng"/>
 
         <EditText
             android:id="@+id/edSoLuongMonAn"
-            android:layout_width="80dp"
-            android:layout_height="48dp"
-            android:gravity="center"
+            android:layout_width="60dp"
+            android:layout_height="wrap_content"
+            android:hint="1"
             android:inputType="number"
-            android:text="0" />
+            android:gravity="center"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:background="@color/colorGray"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="8dp"
+            android:importantForAutofill="no"/> <ImageButton
+        android:id="@+id/btnTangSoLuong"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:src="@drawable/ic_add"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="Tăng số lượng"/>
 
-        <Button
-            android:id="@+id/btnTangSoLuong"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:text="+" />
     </LinearLayout>
 
     <Button
-        android:id="@+id/btnDongYThemSoLuong"
-        android:layout_marginTop="16dp"
-        android:layout_width="wrap_content"
+        android:id="@+id/btnDongYSoLuong"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/dongy"
-        android:background="@color/teal_700"/>
+        android:text="Đồng ý"/>
+
 </LinearLayout>

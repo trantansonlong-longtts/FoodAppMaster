@@ -32,6 +32,9 @@
         <activity android:name=".ThemThucDonActivity" />
         <activity android:name=".SuaThucDonActivity"/>
         <activity android:name=".SuaLoaiThucDonActivity"/>
+        <activity
+            android:name=".SuaNhanVienActivity"
+            android:label="Sửa Nhân Viên" />
 
 
 

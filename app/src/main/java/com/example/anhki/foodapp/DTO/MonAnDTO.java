@@ -1,14 +1,26 @@
 package com.example.anhki.foodapp.DTO;
 
+import com.google.firebase.firestore.DocumentReference;
+
 public class MonAnDTO {
-    private int MaMonAn, MaLoai;
+    private int MaMonAn;
     private String TenMonAn;
     private int GiaTien;
-    // Trong MonAnDTO.java
-    private byte[] HinhAnh;
-    public byte[] getHinhAnh() { return HinhAnh; }
-    public void setHinhAnh(byte[] hinhAnh) { HinhAnh = hinhAnh; }
+    private String documentId;
+    private DocumentReference maLoaiRef; // <-- THÊM TRƯỜNG NÀY
 
+    // Trong MonAnDTO.java
+    private String HinhAnh;
+    public String getHinhAnh() { return HinhAnh; }
+    public void setHinhAnh(String hinhAnh) { HinhAnh = hinhAnh; }
+
+    public DocumentReference getMaLoaiRef() {
+        return maLoaiRef;
+    }
+
+    public void setMaLoaiRef(DocumentReference maLoaiRef) {
+        this.maLoaiRef = maLoaiRef;
+    }
 
     public int getMaMonAn() {
         return MaMonAn;
@@ -18,13 +30,13 @@ public class MonAnDTO {
         MaMonAn = maMonAn;
     }
 
-    public int getMaLoai() {
-        return MaLoai;
-    }
-
-    public void setMaLoai(int maLoai) {
-        MaLoai = maLoai;
-    }
+    //public int getMaLoai() {
+//        return MaLoai;
+//    }
+//
+//    public void setMaLoai(int maLoai) {
+//        MaLoai = maLoai;
+//    }
 
     public String getTenMonAn() {
         return TenMonAn;
@@ -32,6 +44,14 @@ public class MonAnDTO {
 
     public void setTenMonAn(String tenMonAn) {
         TenMonAn = tenMonAn;
+    }
+
+    public String getDocumentId() {
+        return documentId;
+    }
+
+    public void setDocumentId(String documentId) {
+        this.documentId = documentId;
     }
 
     public int getGiaTien() {

@@ -1,29 +1,37 @@
 package com.example.anhki.foodapp.DTO;
 
 public class ChiTietGoiMonDTO {
-    private int MaMonAn, MaGoiMon, SoLuong;
+    // Các tên biến này phải khớp với tên trường trong sub-collection "chiTietGoiMon" trên Firestore
+    private String tenMonAn;
+    private long giaTien;
+    private long soLuong;
+    private String documentId;
 
-    public int getMaMonAn() {
-        return MaMonAn;
+    // Getters and Setters
+    public String getTenMonAn() {
+        return tenMonAn;
     }
 
-    public void setMaMonAn(int maMonAn) {
-        MaMonAn = maMonAn;
+    public void setDocumentId(String documentId) {
+        this.documentId = documentId;
+    }
+    public void setTenMonAn(String tenMonAn) {
+        this.tenMonAn = tenMonAn;
     }
 
-    public int getMaGoiMon() {
-        return MaGoiMon;
+    public long getGiaTien() {
+        return giaTien;
     }
 
-    public void setMaGoiMon(int maGoiMon) {
-        MaGoiMon = maGoiMon;
+    public void setGiaTien(long giaTien) {
+        this.giaTien = giaTien;
     }
 
-    public int getSoLuong() {
-        return SoLuong;
+    public long getSoLuong() {
+        return soLuong;
     }
 
-    public void setSoLuong(int soLuong) {
-        SoLuong = soLuong;
+    public void setSoLuong(long soLuong) {
+        this.soLuong = soLuong;
     }
 }
