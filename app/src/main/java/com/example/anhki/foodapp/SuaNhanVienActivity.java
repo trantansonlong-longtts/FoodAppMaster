@@ -4,7 +4,6 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.DatePickerDialog;
 import android.os.Bundle;
-import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.widget.*;
@@ -14,8 +13,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.example.anhki.foodapp.DAO.QuyenDAO;
 import com.example.anhki.foodapp.DTO.QuyenDTO;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -32,7 +31,7 @@ public class SuaNhanVienActivity extends AppCompatActivity implements View.OnCli
     private Button btnLuu, btnThoat;
 
     private FirebaseFirestore db;
-    private QuyenDAO quyenDAO;
+    //private QuyenDAO quyenDAO;
     private List<QuyenDTO> quyenDTOList;
 
     private String uid; // UID của nhân viên cần sửa
@@ -43,7 +42,7 @@ public class SuaNhanVienActivity extends AppCompatActivity implements View.OnCli
         setContentView(R.layout.layout_suanhanvien);
 
         db = FirebaseFirestore.getInstance();
-        quyenDAO = new QuyenDAO(this);
+        //quyenDAO = new QuyenDAO(this);
 
         anhXaView();
 
@@ -55,18 +54,13 @@ public class SuaNhanVienActivity extends AppCompatActivity implements View.OnCli
 
         uid = getIntent().getStringExtra("uid");
         if (uid != null && !uid.isEmpty()) {
-            loadNhanVienData();
+            //loadNhanVienData();
         } else {
             Toast.makeText(this, "Lỗi: Không tìm thấy nhân viên", Toast.LENGTH_SHORT).show();
             finish();
         }
     }
 
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        if (quyenDAO != null) quyenDAO.close();
-    }
 
     private void anhXaView() {
         edTenDangNhap = findViewById(R.id.edSuaTenDangNhap);
@@ -79,13 +73,41 @@ public class SuaNhanVienActivity extends AppCompatActivity implements View.OnCli
     }
 
     private void hienThiDanhSachQuyen() {
-        quyenDTOList = quyenDAO.LayDanhSachQuyen();
-        List<String> dataAdapter = new ArrayList<>();
-        for (QuyenDTO quyen : quyenDTOList) {
-            dataAdapter.add(quyen.getTenQuyen());
-        }
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, dataAdapter);
-        spinQuyen.setAdapter(adapter);
+        // Khởi tạo lại quyenDTOList ở đây để đảm bảo nó rỗng trước khi load
+        quyenDTOList = new ArrayList<>();
+        db.collection("quyen") // Lấy từ Firestore
+                .orderBy("tenQuyen") // Sắp xếp (tùy chọn)
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        List<String> dataAdapter = new ArrayList<>();
+                        // Không cần clear() quyenDTOList nữa vì đã new ở trên
+                        for (QueryDocumentSnapshot document : task.getResult()) {
+                            try {
+                                QuyenDTO quyen = document.toObject(QuyenDTO.class);
+                                // Lấy ID document làm mã quyền (Firestore ID là String, mã quyền là int)
+                                quyen.setMaQuyen(Integer.parseInt(document.getId()));
+                                quyenDTOList.add(quyen);
+                                dataAdapter.add(quyen.getTenQuyen());
+                            } catch (NumberFormatException e) {
+                                Log.e(TAG, "Lỗi convert ID quyền: " + document.getId(), e);
+                            } catch (Exception e) {
+                                Log.e(TAG, "Lỗi convert QuyenDTO: " + document.getId(), e);
+                            }
+                        }
+                        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, dataAdapter);
+                        spinQuyen.setAdapter(adapter);
+
+                        // Sau khi load xong danh sách quyền, MỚI gọi load thông tin NV để setSelection
+                        loadNhanVienData();
+
+                    } else {
+                        Log.w(TAG, "Lỗi lấy danh sách quyền.", task.getException());
+                        Toast.makeText(this, "Lỗi tải danh sách quyền", Toast.LENGTH_SHORT).show();
+                        // Có thể cần xử lý lỗi nghiêm trọng hơn ở đây, ví dụ đóng Activity
+                        finish();
+                    }
+                });
     }
 
     private void loadNhanVienData() {

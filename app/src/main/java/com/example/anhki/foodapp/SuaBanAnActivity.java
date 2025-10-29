@@ -21,8 +21,6 @@ public class SuaBanAnActivity extends AppCompatActivity {
 
     private EditText edtSuaTenBan;
     private Button btnDongYSuaBan;
-    // Bỏ BanAnDAO
-    // private BanAnDAO banAnDAO;
 
     // Firebase
     private FirebaseFirestore db;
@@ -51,10 +49,6 @@ public class SuaBanAnActivity extends AppCompatActivity {
 
         btnDongYSuaBan.setOnClickListener(v -> luuThayDoiVaoFirestore());
     }
-
-    // Bỏ onDestroy vì không còn DAO
-    // @Override
-    // protected void onDestroy() { ... }
 
     private void loadCurrentData() {
         DocumentReference docRef = db.collection("banAn").document(banAnDocId);

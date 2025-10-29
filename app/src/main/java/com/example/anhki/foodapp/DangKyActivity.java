@@ -1,20 +1,20 @@
 package com.example.anhki.foodapp;
 
 import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.app.DatePickerDialog;
-import android.content.Intent;
-import android.graphics.Color;
-import android.graphics.drawable.ColorDrawable;
 import android.icu.util.Calendar;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.widget.*;
 import androidx.appcompat.app.AppCompatActivity;
+import android.widget.ArrayAdapter;
+import android.widget.Toast;
 
-import com.example.anhki.foodapp.DAO.NhanVienDAO;
-import com.example.anhki.foodapp.DAO.QuyenDAO;
+// Firebase imports
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.example.anhki.foodapp.DTO.NhanVienDTO;
 import com.example.anhki.foodapp.DTO.QuyenDTO;
 
@@ -22,28 +22,23 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class DangKyActivity extends AppCompatActivity implements View.OnClickListener {
-
+    private static final String TAG = "DangKyActivity";
     private EditText edTenDangNhap, edMatKhau, edNgaySinh, edCMND;
     private Button btnDongY, btnThoat;
     private TextView txtTieuDeDangKy;
     private RadioGroup rgGioiTinh;
     private Spinner spinQuyen;
 
-    private int manhanvien = 0; // =0 là thêm mới, !=0 là cập nhật
+    private int manhanvien = 0;
 
-    private NhanVienDAO nhanVienDAO;
-    private QuyenDAO quyenDAO;
     private List<QuyenDTO> quyenDTOList;
     private boolean laQuanLyDauTien;
+    private FirebaseFirestore db;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.layout_dangky);
-
-        // Khởi tạo DAO
-        nhanVienDAO = new NhanVienDAO(this);
-        quyenDAO = new QuyenDAO(this);
 
         // Ánh xạ View
         anhXaView();
@@ -60,18 +55,14 @@ public class DangKyActivity extends AppCompatActivity implements View.OnClickLis
         manhanvien = getIntent().getIntExtra("manhanvien", 0);
         if (manhanvien != 0) {
             txtTieuDeDangKy.setText(R.string.capnhatnhanvien);
-            hienThiThongTinNhanVien();
+            //hienThiThongTinNhanVien();
         }
 
         laQuanLyDauTien = getIntent().getBooleanExtra("laQuanLyDauTien", false);
         if (laQuanLyDauTien) {
             // Nếu là Quản lý đầu tiên, ẩn Spinner đi và mặc định quyền là Quản lý
             spinQuyen.setVisibility(View.GONE);
-            // Trong hàm luuNhanVien(), bạn sẽ cần gán cứng MAQUYEN = Constants.QUYEN_QUANLY
 
-            // Hoặc đơn giản hơn là khóa Spinner lại
-            // spinQuyen.setSelection(0); // Giả sử Quản lý ở vị trí 0
-            // spinQuyen.setEnabled(false);
         }
     }
 
@@ -88,45 +79,37 @@ public class DangKyActivity extends AppCompatActivity implements View.OnClickLis
     }
 
     private void hienThiDanhSachQuyen() {
-        quyenDTOList = quyenDAO.LayDanhSachQuyen();
-        List<String> dataAdapter = new ArrayList<>();
-        for (QuyenDTO quyen : quyenDTOList) {
-            dataAdapter.add(quyen.getTenQuyen());
-        }
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, dataAdapter);
-        spinQuyen.setAdapter(adapter);
+        quyenDTOList = new ArrayList<>(); // Khởi tạo list
+        db.collection("quyen") // Lấy từ Firestore
+                .orderBy("tenQuyen") // Sắp xếp (tùy chọn)
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        List<String> dataAdapter = new ArrayList<>();
+                        quyenDTOList.clear(); // Xóa list cũ
+                        for (QueryDocumentSnapshot document : task.getResult()) {
+                            QuyenDTO quyen = document.toObject(QuyenDTO.class);
+                            quyen.setMaQuyen(Integer.parseInt(document.getId())); // Lấy ID document làm mã quyền
+
+                            quyenDTOList.add(quyen);
+                            dataAdapter.add(quyen.getTenQuyen());
+                        }
+                        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, dataAdapter);
+                        spinQuyen.setAdapter(adapter);
+
+                        // Kiểm tra và khóa spinner nếu là admin đầu tiên
+                        if (laQuanLyDauTien) {
+                            spinQuyen.setSelection(dataAdapter.indexOf("Quản lý")); // Tự động chọn "Quản lý"
+                            spinQuyen.setEnabled(false);
+                        }
+
+                    } else {
+                        Log.w(TAG, "Lỗi lấy danh sách quyền.", task.getException());
+                        Toast.makeText(this, "Lỗi tải danh sách quyền", Toast.LENGTH_SHORT).show();
+                    }
+                });
     }
 
-    private void hienThiThongTinNhanVien() {
-        NhanVienDTO nhanVienDTO = nhanVienDAO.LayDanhSachNhanVienTheoMa(manhanvien);
-
-        // CẢI TIẾN: Kiểm tra null để tránh crash
-        if (nhanVienDTO == null) {
-            Toast.makeText(this, "Không tìm thấy thông tin nhân viên", Toast.LENGTH_SHORT).show();
-            finish();
-            return;
-        }
-
-        edTenDangNhap.setText(nhanVienDTO.getTENDANGNHAP());
-        edMatKhau.setText(nhanVienDTO.getMATKHAU());
-        edCMND.setText(nhanVienDTO.getCMND()); // Giả sử CMND là String
-        edNgaySinh.setText(nhanVienDTO.getNGAYSINH());
-
-        if ("Nam".equals(nhanVienDTO.getGIOITINH())) {
-            rgGioiTinh.check(R.id.rdNam);
-        } else {
-            rgGioiTinh.check(R.id.rdNu);
-        }
-
-        // CẢI TIẾN: Sửa lỗi logic quan trọng - Hiển thị đúng quyền của nhân viên trên Spinner
-        int maQuyenCuaNhanVien = nhanVienDTO.getMAQUYEN();
-        for (int i = 0; i < quyenDTOList.size(); i++) {
-            if (quyenDTOList.get(i).getMaQuyen() == maQuyenCuaNhanVien) {
-                spinQuyen.setSelection(i);
-                break;
-            }
-        }
-    }
 
     private void dongY() {
         String tenDN = edTenDangNhap.getText().toString().trim();
@@ -162,21 +145,6 @@ public class DangKyActivity extends AppCompatActivity implements View.OnClickLis
             }
         }
 
-        // Thực hiện thêm hoặc sửa
-        boolean kiemtra;
-        if (manhanvien != 0) {
-            nhanVienDTO.setMANV(manhanvien);
-            kiemtra = nhanVienDAO.SuaNhanVien(nhanVienDTO);
-            Toast.makeText(this, kiemtra ? "Cập nhật thành công" : "Cập nhật thất bại", Toast.LENGTH_SHORT).show();
-        } else {
-            kiemtra = nhanVienDAO.ThemNhanVien(nhanVienDTO);
-            Toast.makeText(this, kiemtra ? "Thêm thành công" : "Thêm thất bại", Toast.LENGTH_SHORT).show();
-        }
-
-        if (kiemtra) {
-            setResult(Activity.RESULT_OK); // Đặt kết quả để màn hình trước có thể nhận biết
-            finish();
-        }
 
     }
 
@@ -204,15 +172,5 @@ public class DangKyActivity extends AppCompatActivity implements View.OnClickLis
         }
     }
 
-    // CẢI TIẾN: Đóng kết nối DAO để chống rò rỉ bộ nhớ
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        if (nhanVienDAO != null) {
-            nhanVienDAO.close();
-        }
-        if (quyenDAO != null) {
-            quyenDAO.close();
-        }
-    }
+
 }

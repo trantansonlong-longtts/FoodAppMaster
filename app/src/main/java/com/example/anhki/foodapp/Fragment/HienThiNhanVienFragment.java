@@ -33,8 +33,6 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import com.example.anhki.foodapp.Contants;
 import com.example.anhki.foodapp.CustomAdapter.AdapterHienThiNhanVien;
-//import com.example.anhki.foodapp.DAO.NhanVienDAO;
-import com.example.anhki.foodapp.DAO.QuyenDAO;
 import com.example.anhki.foodapp.DTO.NhanVienDTO;
 import com.example.anhki.foodapp.DangKyActivity;
 import com.example.anhki.foodapp.R;
@@ -48,9 +46,6 @@ public class HienThiNhanVienFragment extends Fragment {
     private static final String KEY_MAQUYEN = "maquyen";
 
     private ListView listNhanVien;
-    //private NhanVienDAO nhanVienDAO;
-    private QuyenDAO quyenDAO;
-
     private AdapterHienThiNhanVien adapter;
     private List<NhanVienDTO> nhanVienList;
     private int maquyen;
@@ -139,28 +134,6 @@ public class HienThiNhanVienFragment extends Fragment {
                 });
     }
 
-
-
-//
-//    @Override
-//    public void onResume() {
-//        super.onResume();
-//        hienThiDanhSachNhanVien();
-//    }
-
-//    private void hienThiDanhSachNhanVien() {
-//        nhanVienDTOList = nhanVienDAO.LayDanhSachNhanVien();
-//        AdapterHienThiNhanVien adapter = new AdapterHienThiNhanVien(getActivity(), R.layout.custom_layout_hienthinhanvien, nhanVienDTOList, quyenDAO);
-//        listNhanVien.setAdapter(adapter);
-//    }
-
-//    @Override
-//    public void onDestroyView() {
-//        super.onDestroyView();
-//        if (nhanVienDAO != null) nhanVienDAO.close();
-//        if (quyenDAO != null) quyenDAO.close();
-//    }
-
     // --- Các phương thức menu trên Toolbar ---
     @Override
     public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
@@ -183,7 +156,6 @@ public class HienThiNhanVienFragment extends Fragment {
         }
         return super.onOptionsItemSelected(item);
     }
-
 
     // === CÁC PHƯƠNG THỨC MỚI ĐỂ SỬA/XÓA ===
 

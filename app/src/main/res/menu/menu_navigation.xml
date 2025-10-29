@@ -20,6 +20,10 @@
             android:title="@string/nhanvien"
             android:id="@+id/itNhanVien"
             android:icon="@drawable/nhanvien" />
+        <item
+            android:title="@string/baocao"
+            android:id="@+id/itBaoCao"
+            android:icon="@drawable/baocao" />
 
 
 

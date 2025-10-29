@@ -34,7 +34,6 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.example.anhki.foodapp.Contants;
 //import com.example.anhki.foodapp.CustomAdapter.AdapterHienThiLoaiMonAnThucDon;
 import com.example.anhki.foodapp.CustomAdapter.AdapterHienThiLoaiMonAn;
-//import com.example.anhki.foodapp.DAO.LoaiMonAnDAO;
 import com.example.anhki.foodapp.DTO.LoaiMonAnDTO;
 import com.example.anhki.foodapp.R;
 import com.example.anhki.foodapp.SuaLoaiThucDonActivity;
@@ -46,8 +45,6 @@ import java.util.ArrayList;
 public class HienThiThucDonFragment extends Fragment {
     private static final String TAG = "HienThiThucDonFrag";
     private GridView gridView;
-    //private LoaiMonAnDAO loaiMonAnDAO;
-    //private MonAnDAO monAnDAO; // Thêm DAO để kiểm tra món ăn
     private List<LoaiMonAnDTO> loaiMonAnList;
     private AdapterHienThiLoaiMonAn adapter;
     private int maban = 0;
@@ -76,11 +73,9 @@ public class HienThiThucDonFragment extends Fragment {
         }
 
         gridView = view.findViewById(R.id.gvHienThiThucDon);
-        //loaiMonAnDAO = new LoaiMonAnDAO(requireContext());
         loaiMonAnList = new ArrayList<>();
         // Khởi tạo Firestore và DAO còn lại
         db = FirebaseFirestore.getInstance();
-        //monAnDAO = new MonAnDAO(requireContext()); // Khởi tạo MonAnDAO
 
         // Lấy quyền
         SharedPreferences sharedPreferences = requireActivity().getSharedPreferences("luuquyen", Context.MODE_PRIVATE);
@@ -129,18 +124,6 @@ public class HienThiThucDonFragment extends Fragment {
         }
     }
 
-//    @Override
-//    public void onResume() {
-//        super.onResume();
-//        hienThiDanhSachLoaiMonAn();
-//    }
-//
-//    @Override
-//    public void onDestroyView() {
-//        super.onDestroyView();
-//        //if (loaiMonAnDAO != null) loaiMonAnDAO.close();
-//        if (monAnDAO != null) monAnDAO.close(); // Nhớ đóng MonAnDAO
-//    }
     private void listenForLoaiMonAnUpdates() {
         if (loaiMonAnListener != null) {
             loaiMonAnListener.remove();
@@ -171,13 +154,6 @@ public class HienThiThucDonFragment extends Fragment {
                     }
                 });
     }
-
-//    private void hienThiDanhSachLoaiMonAn() {
-//        loaiMonAnDTOs = loaiMonAnDAO.LayDanhSachLoaiMonAn();
-//        // Adapter giờ không cần listener và maquyen nữa vì Fragment đã xử lý hết
-//        adapter = new AdapterHienThiLoaiMonAn(getContext(), R.layout.custom_layout_hienloaimonan, loaiMonAnDTOs);
-//        gridView.setAdapter(adapter);
-//    }
 
     // --- Các phương thức Menu (Logic Thêm/Sửa/Xóa cần refactor) ---
     private void addMenuProvider() {
@@ -231,38 +207,41 @@ public class HienThiThucDonFragment extends Fragment {
     }
     // Hàm xác nhận và xóa loại món ăn trên Firestore
     private void xacNhanXoaLoaiMonAn(String loaiMonAnDocId, String tenloai) {
-        // Tạo Reference đến document loại món ăn
         DocumentReference loaiRef = db.collection("loaiMonAn").document(loaiMonAnDocId);
 
-        // BƯỚC 1: KIỂM TRA MÓN ĂN TỒN TẠI TRÊN FIRESTORE
+        // 1. Kiểm tra xem có món ăn nào đang tham chiếu đến loại này không
         db.collection("monAn")
-                .whereEqualTo("maLoaiRef", loaiRef) // Tìm món ăn có maLoaiRef trỏ đến loại này
+                .whereEqualTo("maLoaiRef", loaiRef) // Tìm theo Reference
                 .limit(1)
                 .get()
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
-                        // BƯỚC 2A: NẾU CÓ MÓN ĂN -> BÁO LỖI
+                        // 2a. NẾU CÓ MÓN ĂN -> BÁO LỖI
                         if (!task.getResult().isEmpty()) {
                             Toast.makeText(getContext(), "Không thể xóa loại đang có món ăn!", Toast.LENGTH_LONG).show();
                         }
-                        // BƯỚC 2B: NẾU KHÔNG CÓ MÓN ĂN -> HIỆN DIALOG XÁC NHẬN
+                        // 2b. NẾU KHÔNG CÓ -> HỎI XÁC NHẬN
                         else {
-                            new AlertDialog.Builder(requireContext())
-                                    .setTitle("Xác nhận xóa")
-                                    .setMessage("Bạn có chắc chắn muốn xóa '" + tenloai + "' không?")
-                                    .setPositiveButton("Đồng ý", (dialog, which) -> {
-                                        // BƯỚC 3: TIẾN HÀNH XÓA LOẠI MÓN ĂN
-                                        loaiRef.delete()
-                                                .addOnSuccessListener(aVoid -> Toast.makeText(getContext(), "Xóa thành công", Toast.LENGTH_SHORT).show())
-                                                .addOnFailureListener(e -> Toast.makeText(getContext(), "Lỗi, xóa thất bại!", Toast.LENGTH_SHORT).show());
-                                    })
-                                    .setNegativeButton("Hủy", null)
-                                    .show();
+                            hienThiDialogXoaLoai(loaiRef, tenloai);
                         }
                     } else {
                         Log.w(TAG, "Lỗi kiểm tra món ăn: ", task.getException());
                         Toast.makeText(getContext(), "Lỗi kiểm tra dữ liệu!", Toast.LENGTH_SHORT).show();
                     }
                 });
+    }
+
+    private void hienThiDialogXoaLoai(DocumentReference loaiRef, String tenloai) {
+        new AlertDialog.Builder(requireContext())
+                .setTitle("Xác nhận xóa")
+                .setMessage("Bạn có chắc chắn muốn xóa '" + tenloai + "' không?")
+                .setPositiveButton("Đồng ý", (dialog, which) -> {
+                    // 3. Tiến hành xóa loại món ăn
+                    loaiRef.delete()
+                            .addOnSuccessListener(aVoid -> Toast.makeText(getContext(), "Xóa thành công", Toast.LENGTH_SHORT).show())
+                            .addOnFailureListener(e -> Toast.makeText(getContext(), "Lỗi, xóa thất bại!", Toast.LENGTH_SHORT).show());
+                })
+                .setNegativeButton("Hủy", null)
+                .show();
     }
 }

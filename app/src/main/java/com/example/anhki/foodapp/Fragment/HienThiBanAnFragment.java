@@ -29,7 +29,9 @@ import androidx.recyclerview.widget.RecyclerView;    // Import RecyclerView
 
 // Firebase Imports
 import com.example.anhki.foodapp.Contants;
+import com.example.anhki.foodapp.DangNhapActivity;
 import com.example.anhki.foodapp.ThanhToanActivity;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.ListenerRegistration;
@@ -45,15 +47,12 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.example.anhki.foodapp.CustomAdapter.AdapterHienThiBanAn; // Adapter phiên bản RecyclerView
-// Bỏ DAO không cần thiết
-// import com.example.anhki.foodapp.DAO.BanAnDAO;
-// import com.example.anhki.foodapp.DAO.GoiMonDAO;
+
 import com.example.anhki.foodapp.DTO.BanAnDTO;
 import com.example.anhki.foodapp.R;
 import com.example.anhki.foodapp.SuaBanAnActivity;
 import com.example.anhki.foodapp.ThemBanAnActivity;
 import com.example.anhki.foodapp.TrangChuActicity;
-// Import các Activity/Fragment khác nếu cần
 
 import java.util.ArrayList;
 import java.util.List;
@@ -87,7 +86,6 @@ public class HienThiBanAnFragment extends Fragment implements AdapterHienThiBanA
         banAnList = new ArrayList<>();
 
         db = FirebaseFirestore.getInstance();
-        // goiMonDAO có thể không cần ở đây nữa nếu kiểm tra xóa dùng Firestore
 
         // Lấy quyền (giữ nguyên)
         SharedPreferences sharedPreferences = requireActivity().getSharedPreferences("luuquyen", Context.MODE_PRIVATE);
@@ -196,13 +194,20 @@ public class HienThiBanAnFragment extends Fragment implements AdapterHienThiBanA
         String banAnDocId = selectedBanAn.getDocumentId();
         String tenBan = selectedBanAn.getTenBan();
         String tinhTrang = selectedBanAn.getTinhTrang();
-        String maNhanVienUid = FirebaseAuth.getInstance().getCurrentUser() != null ?
-                FirebaseAuth.getInstance().getCurrentUser().getUid() : null;
-
-        if (maNhanVienUid == null) {
-            Toast.makeText(getContext(), "Lỗi: Không xác định được nhân viên!", Toast.LENGTH_SHORT).show();
-            return; // Không thể tiếp tục nếu không có UID nhân viên
+        // --- LẤY THÔNG TIN NHÂN VIÊN TRỰC TIẾP TỪ FIREBASE AUTH ---
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        // Kiểm tra an toàn xem người dùng có còn đăng nhập không
+        if (currentUser == null) {
+            Toast.makeText(getContext(), "Lỗi: Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.", Toast.LENGTH_LONG).show();
+             //TODO: Có thể điều hướng về trang đăng nhập
+             Intent intent = new Intent(getActivity(), DangNhapActivity.class);
+             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+             startActivity(intent);
+            return;
         }
+        String maNhanVienUid = currentUser.getUid();
+        String tenDangNhap = currentUser.getEmail(); // <-- LẤY TRỰC TIẾP EMAIL/TÊN ĐĂNG NHẬP
+        // --- KẾT THÚC LẤY THÔNG TIN ---
 
         DocumentReference banRef = db.collection("banAn").document(banAnDocId);
 
@@ -215,6 +220,7 @@ public class HienThiBanAnFragment extends Fragment implements AdapterHienThiBanA
             Map<String, Object> goiMonData = new HashMap<>();
             goiMonData.put("maBanRef", banRef);
             goiMonData.put("maNhanVien", maNhanVienUid);
+            goiMonData.put("tenNhanVien", tenDangNhap);
             goiMonData.put("ngayGoi", Timestamp.now());
             goiMonData.put("tinhTrang", "false"); // Hóa đơn mới, chưa thanh toán
             goiMonData.put("tongTien", 0L); // Tổng tiền ban đầu là 0
@@ -325,52 +331,48 @@ public class HienThiBanAnFragment extends Fragment implements AdapterHienThiBanA
                 });
     }
 
-    // Hàm xác nhận xóa (giữ nguyên logic kiểm tra GoiMon nếu cần refactor sang Firestore)
+
     private void xacNhanXoaBanAn(String banAnDocId, String tenBan) {
-        // BƯỚC 1: KIỂM TRA HÓA ĐƠN CHƯA THANH TOÁN TRÊN FIRESTORE
+        // 1. Tạo một tham chiếu đến document bàn ăn
+        DocumentReference banRef = db.collection("banAn").document(banAnDocId);
+
+        // 2. Kiểm tra xem có hóa đơn nào đang mở ("false") liên kết với bàn này không
         db.collection("goiMon")
-                .whereEqualTo("maBanRef", db.collection("banAn").document(banAnDocId)) // Tìm theo Reference đến bàn
-                .whereEqualTo("tinhTrang", "false") // Chỉ tìm hóa đơn chưa thanh toán
+                .whereEqualTo("maBanRef", banRef) // Tìm theo Reference
+                .whereEqualTo("tinhTrang", "false") // Trạng thái chưa thanh toán
                 .limit(1) // Chỉ cần tìm 1 là đủ
                 .get()
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
-                        // BƯỚC 2A: NẾU CÓ HÓA ĐƠN -> BÁO LỖI
+                        // 3a. NẾU CÓ HÓA ĐƠN -> BÁO LỖI
                         if (!task.getResult().isEmpty()) {
-                            Log.w(TAG, "Không thể xóa bàn " + banAnDocId + " vì có hóa đơn chưa thanh toán.");
-                            Toast.makeText(getContext(), "Bàn đang có khách/hóa đơn chưa thanh toán, không thể xóa!", Toast.LENGTH_LONG).show();
+                            Toast.makeText(getContext(), "Bàn đang có khách/hóa đơn, không thể xóa!", Toast.LENGTH_LONG).show();
                         }
-                        // BƯỚC 2B: NẾU KHÔNG CÓ HÓA ĐƠN -> HIỆN DIALOG XÁC NHẬN XÓA
+                        // 3b. NẾU KHÔNG CÓ (BÀN TRỐNG) -> HỎI XÁC NHẬN
                         else {
-                            new AlertDialog.Builder(requireContext())
-                                    .setTitle("Xác nhận xóa")
-                                    .setMessage("Bạn có chắc chắn muốn xóa '" + tenBan + "' không?")
-                                    .setIcon(R.drawable.ic_warning) // Đảm bảo bạn có icon này
-                                    .setPositiveButton("Đồng ý", (dialog, which) -> {
-                                        // BƯỚC 3: TIẾN HÀNH XÓA BÀN ĂN TRÊN FIRESTORE
-                                        db.collection("banAn").document(banAnDocId)
-                                                .delete()
-                                                .addOnSuccessListener(aVoid -> {
-                                                    Log.d(TAG, "Xóa bàn Firestore thành công: " + banAnDocId);
-                                                    Toast.makeText(getContext(), getString(R.string.xoathanhcong), Toast.LENGTH_SHORT).show();
-                                                    // Listener sẽ tự động cập nhật GridView
-                                                })
-                                                .addOnFailureListener(e -> {
-                                                    Log.w(TAG, "Lỗi xóa bàn Firestore: " + banAnDocId, e);
-                                                    Toast.makeText(getContext(), getString(R.string.loi), Toast.LENGTH_SHORT).show();
-                                                });
-                                    })
-                                    .setNegativeButton("Hủy", null)
-                                    .show();
+                            hienThiDialogXoa(banRef, tenBan);
                         }
                     } else {
-                        // Lỗi khi kiểm tra hóa đơn
-                        Log.w(TAG, "Lỗi kiểm tra hóa đơn cho bàn: " + banAnDocId, task.getException());
-                        Toast.makeText(getContext(), "Lỗi khi kiểm tra trạng thái bàn!", Toast.LENGTH_SHORT).show();
+                        // Lỗi khi truy vấn
+                        Log.w(TAG, "Lỗi kiểm tra hóa đơn: ", task.getException());
+                        Toast.makeText(getContext(), "Lỗi kiểm tra trạng thái bàn!", Toast.LENGTH_SHORT).show();
                     }
                 });
     }
+    private void hienThiDialogXoa(DocumentReference banRef, String tenBan) {
+        new AlertDialog.Builder(requireContext())
+                .setTitle("Xác nhận xóa")
+                .setMessage("Bạn có chắc chắn muốn xóa '" + tenBan + "' không?")
+                .setIcon(R.drawable.ic_warning)
+                .setPositiveButton("Đồng ý", (dialog, which) -> {
+                    // 4. Tiến hành xóa bàn
+                    banRef.delete()
+                            .addOnSuccessListener(aVoid -> Toast.makeText(getContext(), getString(R.string.xoathanhcong), Toast.LENGTH_SHORT).show())
+                            .addOnFailureListener(e -> Toast.makeText(getContext(), getString(R.string.loi), Toast.LENGTH_SHORT).show());
+                    // Listener sẽ tự động cập nhật lại danh sách
+                })
+                .setNegativeButton("Hủy", null)
+                .show();
+    }
 
-    // Bỏ các hàm listener không cần thiết từ Adapter cũ
-    // @Override public void onGoiMonClick(int position) { }
 }

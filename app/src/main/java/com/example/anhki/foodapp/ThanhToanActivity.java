@@ -1,379 +1,9 @@
-//package com.example.anhki.foodapp;
-//
-//import android.os.Bundle;
-//import android.view.View;
-//import android.widget.Button;
-//import android.widget.GridView;
-//import android.widget.TextView;
-//import android.widget.Toast;
-//
-//import androidx.annotation.Nullable;
-//import androidx.appcompat.app.AppCompatActivity;
-//
-//import com.example.anhki.foodapp.CustomAdapter.AdapterHienThiThanhToan;
-//import com.example.anhki.foodapp.DAO.BanAnDAO;
-//import com.example.anhki.foodapp.DAO.GoiMonDAO;
-//import com.example.anhki.foodapp.DTO.ThanhToanDTO;
-//
-//import java.text.DecimalFormat;
-//import java.text.NumberFormat;
-//import java.util.List;
-//import java.util.Locale;
-//
-//public class ThanhToanActivity extends AppCompatActivity implements View.OnClickListener {
-//    private GridView gridView;
-//    private Button btnThanhToan, btnThoat;
-//    private TextView txtTongTien;
-//    private GoiMonDAO goiMonDAO;
-//    private BanAnDAO banAnDAO;
-//    private List<ThanhToanDTO> thanhToanDTOList;
-//    private AdapterHienThiThanhToan adapterHienThiThanhToan;
-//
-//    private int maban;
-//    private int magoimon;
-//
-//    @Override
-//    protected void onCreate(@Nullable Bundle savedInstanceState) {
-//        super.onCreate(savedInstanceState);
-//        setContentView(R.layout.layout_thanhtoan);
-//
-//        // Ánh xạ View
-//        gridView = findViewById(R.id.gvThanhToan);
-//        btnThanhToan = findViewById(R.id.btnThanhToan);
-//        btnThoat = findViewById(R.id.btnThoatThanhToan);
-//        txtTongTien = findViewById(R.id.txtTongTien);
-//
-//        // Khởi tạo DAO
-//        goiMonDAO = new GoiMonDAO(this);
-//        banAnDAO = new BanAnDAO(this);
-//
-//        // Lấy mã bàn từ Intent
-//        maban = getIntent().getIntExtra("maban", 0);
-//
-//        if (maban != 0) {
-//            // Lấy mã gọi món dựa vào mã bàn
-//            magoimon = (int) goiMonDAO.LayMaGoiMonTheoMaBan(maban, "false");
-//            // Hiển thị danh sách món và tính tổng tiền
-//            hienThiDanhSachVaTinhTongTien();
-//        }
-//
-//        btnThanhToan.setOnClickListener(this);
-//        btnThoat.setOnClickListener(this);
-//    }
-//
-//    private void hienThiDanhSachVaTinhTongTien() {
-//        thanhToanDTOList = goiMonDAO.LayDanhSachMonAnTheoMaGoiMon(magoimon);
-//
-//        adapterHienThiThanhToan = new AdapterHienThiThanhToan(this, R.layout.custom_layout_hienthithanhtoan, thanhToanDTOList);
-//        gridView.setAdapter(adapterHienThiThanhToan);
-//
-//        // Tính tổng tiền
-//        long tongTien = 0;
-//        for (ThanhToanDTO thanhToanDTO : thanhToanDTOList) {
-//            tongTien += (long) thanhToanDTO.getSoLuong() * thanhToanDTO.getGiatien();
-//        }
-//
-//        // ĐỊNH DẠNG TỔNG TIỀN VÀ HIỂN THỊ
-//        String tongTienFormatted = formatVND(tongTien);
-//        txtTongTien.setText(getString(R.string.tongcong) + " " + tongTienFormatted);
-//    }
-//
-//    @Override
-//    public void onClick(View v) {
-//        int id = v.getId();
-//        if (id == R.id.btnThanhToan) {
-//            boolean kiemtrabanan = banAnDAO.CapNhatTinhTrangBan(maban, "false");
-//            boolean kiemtragoimon = goiMonDAO.CapNhatTrangThaiGoiMonTheoMaBan(maban, "true");
-//
-//            if (kiemtrabanan && kiemtragoimon) {
-//                Toast.makeText(this, getString(R.string.thanhtoanthanhcong), Toast.LENGTH_SHORT).show();
-//                hienThiDanhSachVaTinhTongTien(); // Tải lại danh sách (sẽ trống) và reset tổng tiền về 0
-//            } else {
-//                Toast.makeText(this, getString(R.string.loi), Toast.LENGTH_SHORT).show();
-//            }
-//        } else if (id == R.id.btnThoatThanhToan) {
-//            finish();
-//        }
-//    }
-//
-//    // TỐI ƯU: Thêm hàm onDestroy để đóng kết nối CSDL, chống rò rỉ bộ nhớ
-//    @Override
-//    protected void onDestroy() {
-//        super.onDestroy();
-//        if (goiMonDAO != null) {
-//            goiMonDAO.close();
-//        }
-//        if (banAnDAO != null) {
-//            banAnDAO.close();
-//        }
-//    }
-//
-//    // HÀM ĐỊNH DẠNG TIỀN TỆ
-//    private String formatVND(long amount) {
-//        DecimalFormat formatter = (DecimalFormat) NumberFormat.getInstance(Locale.US);
-//        formatter.applyPattern("#,###");
-//        return formatter.format(amount) + " VNĐ";
-//    }
-//}
-//package com.example.anhki.foodapp;
-//
-//import android.os.Bundle;
-//import android.util.Log;
-//import android.view.View;
-//import android.widget.Button;
-//import android.widget.GridView; // Hoặc ListView/RecyclerView
-//import android.widget.TextView;
-//import android.widget.Toast;
-//
-//import androidx.annotation.Nullable;
-//import androidx.appcompat.app.AppCompatActivity;
-//import androidx.recyclerview.widget.LinearLayoutManager; // Nếu dùng RecyclerView
-//import androidx.recyclerview.widget.RecyclerView;    // Nếu dùng RecyclerView
-//
-//// Firebase Imports
-//import com.google.firebase.firestore.DocumentReference;
-//import com.google.firebase.firestore.DocumentSnapshot;
-//import com.google.firebase.firestore.FirebaseFirestore;
-//import com.google.firebase.firestore.FirebaseFirestoreException;
-//import com.google.firebase.firestore.ListenerRegistration;
-//import com.google.firebase.firestore.Query;
-//import com.google.firebase.firestore.QueryDocumentSnapshot;
-//import com.google.firebase.firestore.QuerySnapshot;
-//import com.google.firebase.firestore.WriteBatch;
-//
-//// Import DTO và Adapter mới
-//import com.example.anhki.foodapp.CustomAdapter.AdapterHienThiThanhToan; // Adapter đã sửa
-//import com.example.anhki.foodapp.DTO.ChiTietGoiMonDTO; // DTO mới
-//
-//import java.text.DecimalFormat;
-//import java.text.NumberFormat;
-//import java.util.ArrayList;
-//import java.util.List;
-//import java.util.Locale;
-//
-//public class ThanhToanActivity extends AppCompatActivity implements View.OnClickListener {
-//    private static final String TAG = "ThanhToanActivity";
-//
-//    // private GridView gridView; // Bỏ GridView cũ nếu dùng RecyclerView
-//    private RecyclerView rvChiTietThanhToan; // Dùng RecyclerView
-//    private Button btnThanhToan, btnThoat;
-//    private TextView txtTongTien, txtTenBanThanhToan; // Thêm TextView tên bàn
-//    private AdapterHienThiThanhToan adapter; // Adapter đã sửa
-//    private List<ChiTietGoiMonDTO> chiTietList;
-//
-//    // Firebase
-//    private FirebaseFirestore db;
-//    private ListenerRegistration goiMonListener;
-//    private ListenerRegistration chiTietListener;
-//    private String banAnDocId;
-//    private String goiMonDocId; // ID của hóa đơn đang mở
-//    private DocumentReference banRef;
-//
-//    @Override
-//    protected void onCreate(@Nullable Bundle savedInstanceState) {
-//        super.onCreate(savedInstanceState);
-//        setContentView(R.layout.layout_thanhtoan); // Đảm bảo layout dùng RecyclerView
-//
-//        // Ánh xạ View
-//        // gridView = findViewById(R.id.gvThanhToan); // Bỏ
-//        rvChiTietThanhToan = findViewById(R.id.rvChiTietThanhToan); // Ánh xạ RecyclerView
-//        btnThanhToan = findViewById(R.id.btnThanhToan);
-//        btnThoat = findViewById(R.id.btnThoatThanhToan);
-//        txtTongTien = findViewById(R.id.txtTongTien);
-//        txtTenBanThanhToan = findViewById(R.id.txtTenBanThanhToan); // Ánh xạ tên bàn
-//
-//        // Khởi tạo Firebase
-//        db = FirebaseFirestore.getInstance();
-//
-//        // Lấy dữ liệu từ Intent
-//        banAnDocId = getIntent().getStringExtra("banAnDocId"); // Nhận ID bàn từ Fragment
-//        String tenBan = getIntent().getStringExtra("tenBan");    // Nhận tên bàn từ Fragment
-//        txtTenBanThanhToan.setText("Bàn: " + tenBan);
-//
-//        if (banAnDocId == null || banAnDocId.isEmpty()) {
-//            Toast.makeText(this, "Lỗi: Không tìm thấy thông tin bàn", Toast.LENGTH_SHORT).show();
-//            finish();
-//            return;
-//        }
-//        banRef = db.collection("banAn").document(banAnDocId);
-//
-//        // Cài đặt RecyclerView
-//        chiTietList = new ArrayList<>();
-//        adapter = new AdapterHienThiThanhToan(this, R.layout.item_chitiet_goimon, chiTietList); // Dùng layout item mới
-//        rvChiTietThanhToan.setLayoutManager(new LinearLayoutManager(this));
-//        rvChiTietThanhToan.setAdapter(adapter);
-//
-//        // Gán sự kiện
-//        btnThanhToan.setOnClickListener(this);
-//        btnThoat.setOnClickListener(this);
-//    }
-//
-//    // Bắt đầu lắng nghe trong onStart
-//    @Override
-//    protected void onStart() {
-//        super.onStart();
-//        findOpenGoiMonAndListen(); // Tìm hóa đơn đang mở và bắt đầu lắng nghe
-//    }
-//
-//    // Dừng lắng nghe trong onStop
-//    @Override
-//    protected void onStop() {
-//        super.onStop();
-//        if (goiMonListener != null) goiMonListener.remove();
-//        if (chiTietListener != null) chiTietListener.remove();
-//    }
-//
-//    // Hàm tìm hóa đơn đang mở và lắng nghe thay đổi
-//    private void findOpenGoiMonAndListen() {
-//        db.collection("goiMon")
-//                .whereEqualTo("maBanRef", banRef)
-//                .whereEqualTo("tinhTrang", "false")
-//                .limit(1)
-//                .get()
-//                .addOnCompleteListener(task -> {
-//                    if (task.isSuccessful() && !task.getResult().isEmpty()) {
-//                        DocumentSnapshot goiMonDoc = task.getResult().getDocuments().get(0);
-//                        goiMonDocId = goiMonDoc.getId(); // Lưu lại ID hóa đơn
-//                        Log.d(TAG,"Tìm thấy goiMon đang mở: " + goiMonDocId);
-//                        // Bắt đầu lắng nghe hóa đơn này
-//                        listenToGoiMon(goiMonDoc.getReference());
-//                        listenToChiTiet(goiMonDoc.getReference());
-//                    } else if (task.isSuccessful()) {
-//                        Log.w(TAG, "Không tìm thấy goiMon nào đang mở cho bàn: " + banAnDocId);
-//                        Toast.makeText(this, "Bàn này không có hóa đơn nào đang mở.", Toast.LENGTH_SHORT).show();
-//                        // Có thể vô hiệu hóa nút thanh toán hoặc tự động đóng Activity
-//                        btnThanhToan.setEnabled(false);
-//                        chiTietList.clear();
-//                        adapter.notifyDataSetChanged();
-//                        txtTongTien.setText(getString(R.string.tongcong) + " 0 VNĐ");
-//                    } else {
-//                        Log.e(TAG, "Lỗi tìm kiếm goiMon: ", task.getException());
-//                        Toast.makeText(this, "Lỗi tải hóa đơn", Toast.LENGTH_SHORT).show();
-//                    }
-//                });
-//    }
-//
-//    // Lắng nghe thay đổi của document goiMon (để cập nhật tổng tiền)
-//    private void listenToGoiMon(DocumentReference goiMonRef) {
-//        if (goiMonListener != null) goiMonListener.remove(); // Hủy listener cũ
-//
-//        goiMonListener = goiMonRef.addSnapshotListener((snapshot, e) -> {
-//            if (e != null) {
-//                Log.w(TAG, "Lỗi lắng nghe goiMon:", e);
-//                return;
-//            }
-//            if (snapshot != null && snapshot.exists()) {
-//                Long tongTienLong = snapshot.getLong("tongTien");
-//                long tongTienValue = (tongTienLong != null) ? tongTienLong : 0;
-//                // Định dạng và hiển thị tổng tiền
-//                txtTongTien.setText(getString(R.string.tongcong) + " " + formatVND(tongTienValue));
-//                Log.d(TAG,"Tổng tiền cập nhật: "+ formatVND(tongTienValue));
-//            } else {
-//                Log.d(TAG, "Document goiMon không tồn tại hoặc đã bị xóa");
-//                // Hóa đơn có thể đã bị thanh toán hoặc xóa ở thiết bị khác
-//                Toast.makeText(this, "Hóa đơn không còn tồn tại", Toast.LENGTH_SHORT).show();
-//                btnThanhToan.setEnabled(false);
-//            }
-//        });
-//    }
-//
-//    // Lắng nghe thay đổi của sub-collection chiTietGoiMon
-//    private void listenToChiTiet(DocumentReference goiMonRef) {
-//        if (chiTietListener != null) chiTietListener.remove(); // Hủy listener cũ
-//
-//        chiTietListener = goiMonRef.collection("chiTietGoiMon")
-//                .orderBy("tenMonAn", Query.Direction.ASCENDING) // Sắp xếp theo tên món
-//                .addSnapshotListener((snapshots, e) -> {
-//                    if (e != null) {
-//                        Log.w(TAG, "Lỗi lắng nghe chiTietGoiMon:", e);
-//                        return;
-//                    }
-//                    if (snapshots != null) {
-//                        chiTietList.clear();
-//                        for (QueryDocumentSnapshot doc : snapshots) {
-//                            try {
-//                                ChiTietGoiMonDTO chiTiet = doc.toObject(ChiTietGoiMonDTO.class);
-//                                //chiTiet.setDocumentId(doc.getId()); // Lưu ID nếu cần
-//                                chiTietList.add(chiTiet);
-//                            } catch (Exception convertError){
-//                                Log.e(TAG, "Lỗi convert chi tiết món: " + doc.getId(), convertError);
-//                            }
-//                        }
-//                        adapter.notifyDataSetChanged(); // Cập nhật RecyclerView
-//                        Log.d(TAG,"Chi tiết hóa đơn cập nhật: " + chiTietList.size() + " món");
-//                    }else {
-//                        Log.d(TAG, "Snapshot chiTietGoiMon là null");
-//                        chiTietList.clear(); // Xóa list cũ nếu snapshot null
-//                        adapter.notifyDataSetChanged();
-//                    }
-//                });
-//    }
-//
-//
-//    @Override
-//    public void onClick(View v) {
-//        int id = v.getId();
-//        if (id == R.id.btnThanhToan) {
-//            thucHienThanhToan();
-//        } else if (id == R.id.btnThoatThanhToan) {
-//            finish();
-//        }
-//    }
-//
-//    // Hàm xử lý thanh toán trên Firestore
-//    private void thucHienThanhToan() {
-//        if (goiMonDocId == null || goiMonDocId.isEmpty()) {
-//            Toast.makeText(this, "Không tìm thấy hóa đơn để thanh toán", Toast.LENGTH_SHORT).show();
-//            return;
-//        }
-//
-//        DocumentReference goiMonRef = db.collection("goiMon").document(goiMonDocId);
-//
-//        // Dùng WriteBatch để cập nhật cả GoiMon và BanAn
-//        WriteBatch batch = db.batch();
-//
-//        // 1. Cập nhật trạng thái GoiMon thành "true" (đã thanh toán)
-//        batch.update(goiMonRef, "tinhTrang", "true");
-//        // Có thể thêm trường giờ thanh toán: batch.update(goiMonRef, "gioThanhToan", Timestamp.now());
-//
-//        // 2. Cập nhật trạng thái BanAn thành "false" (trống)
-//        batch.update(banRef, "tinhTrang", "false");
-//
-//        // Thực thi batch
-//        batch.commit()
-//                .addOnSuccessListener(aVoid -> {
-//                    Log.d(TAG, "Thanh toán thành công cho goiMon: " + goiMonDocId);
-//                    Toast.makeText(this, getString(R.string.thanhtoanthanhcong), Toast.LENGTH_SHORT).show();
-//                    // Listener sẽ tự động cập nhật lại danh sách (thành rỗng) và tổng tiền
-//                    btnThanhToan.setEnabled(false); // Vô hiệu hóa nút sau khi thanh toán
-//                    // finish(); // Có thể đóng Activity sau khi thanh toán
-//                })
-//                .addOnFailureListener(e -> {
-//                    Log.w(TAG, "Lỗi khi thanh toán goiMon: " + goiMonDocId, e);
-//                    Toast.makeText(this, getString(R.string.loi), Toast.LENGTH_SHORT).show();
-//                });
-//    }
-//
-//
-//    // Hàm định dạng tiền tệ (giữ nguyên)
-//    private String formatVND(long amount) {
-//        DecimalFormat formatter = (DecimalFormat) NumberFormat.getInstance(Locale.US);
-//        formatter.applyPattern("#,###");
-//        return formatter.format(amount) + " VNĐ";
-//    }
-
-    // Bỏ onDestroy vì không còn DAO cần đóng
-    // @Override
-    // protected void onDestroy() { ... }
-//}
 package com.example.anhki.foodapp;
 
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
-// Bỏ GridView nếu không dùng
-// import android.widget.GridView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -383,6 +13,7 @@ import androidx.recyclerview.widget.LinearLayoutManager; // Import RecyclerView
 import androidx.recyclerview.widget.RecyclerView;    // Import RecyclerView
 
 // Firebase Imports
+import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -443,9 +74,6 @@ public class ThanhToanActivity extends AppCompatActivity implements View.OnClick
         // Lấy dữ liệu từ Intent (Gửi từ HienThiBanAnFragment)
         banAnDocId = getIntent().getStringExtra("banAnDocId");
         String tenBan = getIntent().getStringExtra("tenBan");
-        // goiMonDocId cũng có thể được gửi từ Fragment nếu muốn,
-        // nhưng tìm lại trong onStart an toàn hơn phòng trường hợp dữ liệu thay đổi.
-        // goiMonDocId = getIntent().getStringExtra("goiMonDocId");
 
         // Hiển thị tên bàn
         if (tenBan != null && !tenBan.isEmpty()) {
@@ -646,19 +274,14 @@ public class ThanhToanActivity extends AppCompatActivity implements View.OnClick
         }
 
         DocumentReference goiMonRef = db.collection("goiMon").document(goiMonDocId);
-
         // Sử dụng WriteBatch để đảm bảo cả 2 cập nhật thành công hoặc thất bại cùng lúc
         WriteBatch batch = db.batch();
-
         // 1. Cập nhật trạng thái của goiMon thành "true" (đã thanh toán)
         batch.update(goiMonRef, "tinhTrang", "true");
-        // Có thể thêm các trường khác nếu cần, ví dụ:
-        // batch.update(goiMonRef, "thoiGianThanhToan", Timestamp.now());
-        // batch.update(goiMonRef, "nhanVienThanhToan", FirebaseAuth.getInstance().getCurrentUser().getUid());
-
+        //Lưu thời điểm thanh toán
+        batch.update(goiMonRef, "gioThanhToan", Timestamp.now());
         // 2. Cập nhật trạng thái của BanAn thành "false" (trống)
         batch.update(banRef, "tinhTrang", "false");
-
         // Thực thi batch write
         batch.commit()
                 .addOnSuccessListener(aVoid -> {
@@ -684,6 +307,4 @@ public class ThanhToanActivity extends AppCompatActivity implements View.OnClick
         // Bỏ ký hiệu 'đ' nếu không muốn: ((DecimalFormat)currencyFormatter).applyPattern("#,###"); return currencyFormatter.format(amount) + " VNĐ";
         return currencyFormatter.format(amount); // Trả về dạng "123.456 ₫"
     }
-
-    // Không cần hàm onDestroy để đóng DAO nữa
 }

@@ -1,4 +1,4 @@
-//gemini
+
 package com.example.anhki.foodapp;
 
 import android.content.Context;
@@ -15,8 +15,6 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog; // Thêm import cho AlertDialog
 import androidx.appcompat.app.AppCompatActivity;
-import com.example.anhki.foodapp.DAO.QuyenDAO;
-//import com.example.anhki.foodapp.DAO.NhanVienDAO;
 
 // Firebase Imports
 import com.google.firebase.auth.FirebaseAuth;
@@ -24,6 +22,11 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QuerySnapshot;
+import com.google.firebase.firestore.WriteBatch;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class DangNhapActivity extends AppCompatActivity implements View.OnClickListener {
     private static final String TAG = "DangNhapActivity";
@@ -34,7 +37,6 @@ public class DangNhapActivity extends AppCompatActivity implements View.OnClickL
     private EditText edTenDangNhap, edMatKhau;
     private Button btnDongY, btnDangKy;
     private TextView txtQuenMatKhau; // Thêm TextView
-    //private NhanVienDAO nhanVienDAO;
     // Firebase
     private FirebaseAuth mAuth;
     private FirebaseFirestore db;
@@ -55,9 +57,6 @@ public class DangNhapActivity extends AppCompatActivity implements View.OnClickL
         btnDangKy = findViewById(R.id.btnDongYDN2);
         txtQuenMatKhau = findViewById(R.id.txtQuenMatKhau); // Ánh xạ TextView
 
-        //nhanVienDAO = new NhanVienDAO(this);
-
-
         btnDongY.setOnClickListener(this);
         btnDangKy.setOnClickListener(this);
         txtQuenMatKhau.setOnClickListener(this); // Gán sự kiện
@@ -66,49 +65,80 @@ public class DangNhapActivity extends AppCompatActivity implements View.OnClickL
         // DI CHUYỂN LOGIC CÀI ĐẶT LẦN ĐẦU VỀ ĐÂY
         caiDatLanDau();
 
-        // KIỂM TRA QUYỀN QUẢN LÝ chuyển sang DangkyActivity
-        //kiemTraQuanLy();
-
-        // TỐI ƯU: Tự động đăng ký nhân viên đầu tiên nếu chưa có ai
-        //kiemTraVaTaoNhanVienDauTien();
     }
     private void caiDatLanDau() {
         SharedPreferences sharedPreferences = getSharedPreferences("SPR_MOLANDAU", 0);
         boolean firstOpen = sharedPreferences.getBoolean("MOLANDAU", true);
-        if (firstOpen) {
-            QuyenDAO quyenDAO = new QuyenDAO(this);
-            // Kiểm tra xem quyền đã tồn tại chưa trước khi thêm
-            if (quyenDAO.LayDanhSachQuyen().isEmpty()){
-                quyenDAO.ThemQuyen("Quản lý"); // ID = 1
-                quyenDAO.ThemQuyen("Nhân viên"); // ID = 2
-            }
-            quyenDAO.close();
 
-            SharedPreferences.Editor editor = sharedPreferences.edit();
-            editor.putBoolean("MOLANDAU", false);
-            editor.apply();
+        if (firstOpen) {
+            Log.d(TAG, "Lần đầu mở ứng dụng, kiểm tra cài đặt Quyền trên Firestore...");
+            // Kiểm tra xem collection "quyen" đã có dữ liệu chưa
+            db.collection("quyen")
+                    .limit(1) // Chỉ cần kiểm tra 1 document là đủ
+                    .get()
+                    .addOnCompleteListener(task -> {
+                        if (task.isSuccessful()) {
+                            QuerySnapshot snapshot = task.getResult();
+                            if (snapshot != null && snapshot.isEmpty()) {
+                                // Collection "quyen" rỗng -> Thêm dữ liệu mặc định
+                                Log.d(TAG, "Collection 'quyen' rỗng. Thêm dữ liệu mặc định...");
+                                themQuyenMacDinh();
+                            } else if (snapshot != null){
+                                // Collection đã có dữ liệu
+                                Log.d(TAG, "Collection 'quyen' đã có dữ liệu.");
+                                // Vẫn đánh dấu là đã cài đặt xong
+                                danhDauDaCaiDat(sharedPreferences);
+                            } else {
+                                Log.w(TAG, "Snapshot collection 'quyen' là null.");
+                            }
+                        } else {
+                            // Lỗi khi kiểm tra collection "quyen"
+                            Log.w(TAG, "Lỗi kiểm tra collection 'quyen': ", task.getException());
+                            // Không đánh dấu đã cài đặt để thử lại lần sau
+                        }
+                    });
+        } else {
+            Log.d(TAG, "Không phải lần đầu mở ứng dụng.");
         }
     }
+    // Hàm thêm quyền mặc định vào Firestore
+    private void themQuyenMacDinh() {
+        WriteBatch batch = db.batch();
 
-//    private void kiemTraQuanLy() {
-//        // SỬA LỖI: Kiểm tra xem đã có tài khoản Quản lý nào chưa
-//        if (!nhanVienDAO.KiemTraQuanLyTonTai()) {
-//            Intent iDangKy = new Intent(this, DangKyActivity.class);
-//            iDangKy.putExtra("laQuanLyDauTien", true); // Gửi cờ để báo hiệu
-//            startActivity(iDangKy);
-//            Toast.makeText(this, "Vui lòng đăng ký tài khoản Quản lý đầu tiên!", Toast.LENGTH_LONG).show();
-//        }
-//    }
+        // Quyền Quản lý (ID: 1)
+        Map<String, Object> quyenQuanLy = new HashMap<>();
+        quyenQuanLy.put("tenQuyen", "Quản lý");
+        DocumentReference quanLyRef = db.collection("quyen").document("1"); // Đặt ID là "1"
+        batch.set(quanLyRef, quyenQuanLy);
 
-//    private void kiemTraVaTaoNhanVienDauTien() {
-//        // Kiểm tra xem đã có nhân viên nào trong CSDL chưa
-//        if (!nhanVienDAO.KiemTraNhanVien()) {
-//            // Nếu chưa có, chuyển đến màn hình đăng ký để tạo nhân viên đầu tiên (mặc định là admin)
-//            Intent iDangKy = new Intent(DangNhapActivity.this, DangKyActivity.class);
-//            startActivity(iDangKy);
-//            Toast.makeText(this, "Chưa có nhân viên, vui lòng đăng ký tài khoản quản lý đầu tiên!", Toast.LENGTH_LONG).show();
-//        }
-//    }
+        // Quyền Nhân viên (ID: 2)
+        Map<String, Object> quyenNhanVien = new HashMap<>();
+        quyenNhanVien.put("tenQuyen", "Nhân viên");
+        DocumentReference nhanVienRef = db.collection("quyen").document("2"); // Đặt ID là "2"
+        batch.set(nhanVienRef, quyenNhanVien);
+
+        // Thực thi batch write
+        batch.commit()
+                .addOnSuccessListener(aVoid -> {
+                    Log.d(TAG, "Thêm quyền mặc định vào Firestore thành công!");
+                    // Đánh dấu đã cài đặt xong sau khi thêm thành công
+                    SharedPreferences sharedPreferences = getSharedPreferences("SPR_MOLANDAU", 0);
+                    danhDauDaCaiDat(sharedPreferences);
+                })
+                .addOnFailureListener(e -> {
+                    Log.w(TAG, "Lỗi khi thêm quyền mặc định vào Firestore", e);
+                    // Không đánh dấu đã cài đặt để thử lại lần sau
+                });
+    }
+
+    // Hàm đánh dấu SharedPreferences
+    private void danhDauDaCaiDat(SharedPreferences sharedPreferences) {
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putBoolean("MOLANDAU", false);
+        editor.apply();
+        Log.d(TAG, "Đã đánh dấu MOLANDAU = false.");
+    }
+
 
     // Hàm xử lý đăng nhập bằng Firebase
     private void xuLyDangNhap() {
@@ -138,28 +168,6 @@ public class DangNhapActivity extends AppCompatActivity implements View.OnClickL
                     }
                 });
 
-
-//        int manhanvien = nhanVienDAO.KiemTraDangNhap(sTenDangNhap, sMatKhau);
-//        if (manhanvien > 0) { // Đăng nhập thành công nếu mã nhân viên > 0
-//            // Lấy mã quyền của nhân viên đó
-//            int maquyen = nhanVienDAO.LayQuyenNhanVien(manhanvien);
-//
-//            // Lưu mã quyền vào SharedPreferences
-//            SharedPreferences sharedPreferences = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
-//            SharedPreferences.Editor editor = sharedPreferences.edit();
-//            editor.putInt(KEY_MAQUYEN, maquyen);
-//            editor.apply();
-//
-//            // Chuyển sang trang chủ
-//            Intent iTrangChu = new Intent(DangNhapActivity.this, TrangChuActicity.class);
-//            iTrangChu.putExtra("tendn", sTenDangNhap);
-//            iTrangChu.putExtra("manhanvien", manhanvien);
-//            startActivity(iTrangChu);
-//            overridePendingTransition(R.anim.hieuung_activity_vao, R.anim.hieuung_activity_ra);
-//            finish(); // Đóng màn hình đăng nhập
-//        } else {
-//            Toast.makeText(this, "Đăng nhập thất bại!", Toast.LENGTH_SHORT).show();
-//        }
     }
     private void layMaQuyenVaChuyenTrang(String uid, String email) {
         DocumentReference docRef = db.collection("nhanVien").document(uid);
@@ -279,13 +287,5 @@ public class DangNhapActivity extends AppCompatActivity implements View.OnClickL
                 });
     }
 
-//bỏ onDestroy do không còn DAO
-    // TỐI ƯU: Luôn đóng kết nối CSDL khi Activity bị hủy
-//    @Override
-//    protected void onDestroy() {
-//        super.onDestroy();
-//        if (nhanVienDAO != null) {
-//            nhanVienDAO.close();
-//        }
-//    }
+
 }

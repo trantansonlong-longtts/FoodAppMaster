@@ -14,12 +14,15 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
+import com.example.anhki.foodapp.Fragment.BaoCaoDoanhThuFragment;
 import com.example.anhki.foodapp.Fragment.HienThiBanAnFragment;
 import com.example.anhki.foodapp.Fragment.HienThiNhanVienFragment;
 import com.example.anhki.foodapp.Fragment.HienThiThucDonFragment;
 import com.example.anhki.foodapp.utils.PermissionHelper;
 import com.google.android.material.navigation.NavigationView;
 
+import android.util.Log;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
@@ -31,6 +34,8 @@ public class TrangChuActicity extends AppCompatActivity implements NavigationVie
     private Toolbar toolbar;
     private TextView txtTenNhanVien_Navigation;
     private FragmentManager fragmentManager;
+    private int maquyen;
+
 
     @SuppressLint("RestrictedApi")
     @Override
@@ -70,6 +75,30 @@ public class TrangChuActicity extends AppCompatActivity implements NavigationVie
         navigationView.setItemIconTintList(null);
         navigationView.setNavigationItemSelectedListener(this);
 
+        // --- BỔ SUNG ĐỌC QUYỀN VÀ PHÂN QUYỀN MENU ---
+        // 1. Đọc mã quyền từ SharedPreferences
+        SharedPreferences sharedPreferences = getSharedPreferences("luuquyen", Context.MODE_PRIVATE);
+        maquyen = sharedPreferences.getInt("maquyen", -1); // Đọc quyền
+
+        // 2. Lấy đối tượng Menu từ NavigationView
+        Menu navMenu = navigationView.getMenu();
+        MenuItem navBaoCao = navMenu.findItem(R.id.itBaoCao); // Lấy item Báo cáo (đã thêm ID này vào XML)
+        MenuItem navNhanVien = navMenu.findItem(R.id.itNhanVien); // Lấy item Nhân viên (ví dụ)
+        // Lấy thêm các item quản lý khác nếu cần (vd: nav_thucdon_quanly)
+
+        // 3. Ẩn/Hiện menu dựa trên quyền
+        boolean isQuanLy = (maquyen == Contants.QUYEN_QUANLY); // Kiểm tra có phải quản lý không
+
+        if (navBaoCao != null) {
+            navBaoCao.setVisible(isQuanLy); // Chỉ hiện Báo cáo nếu là Quản lý
+        }
+        if (navNhanVien != null) {
+            navNhanVien.setVisible(isQuanLy); // Chỉ hiện Nhân viên nếu là Quản lý
+        }
+        // Làm tương tự cho các mục quản lý khác...
+
+        // --- KẾT THÚC PHẦN BỔ SUNG ---
+
         // Nhận dữ liệu từ DangNhapActivity
         Intent intent = getIntent();
         String tendn = intent.getStringExtra("tendn");
@@ -81,14 +110,6 @@ public class TrangChuActicity extends AppCompatActivity implements NavigationVie
         toolbar.setTitle("Bàn Ăn");
         navigationView.setCheckedItem(R.id.itTrangChu);
     }
-
-    // Hàm mở activity sửa món ăn
-//    public void moSuaMonAn(int mamon) {
-//        Intent intent = new Intent(this, SuaThucDonActivity.class);
-//        intent.putExtra("mamon", mamon);
-//        startActivity(intent);
-//        overridePendingTransition(R.anim.hieuung_activity_vao, R.anim.hieuung_activity_ra);
-//    }
 
     /**
      * Callback xin quyền
@@ -151,6 +172,14 @@ public class TrangChuActicity extends AppCompatActivity implements NavigationVie
         } else if (id == R.id.itNhanVien) {
             replaceFragment(new HienThiNhanVienFragment());
             toolbar.setTitle("Nhân viên");
+        } else if (id == R.id.itBaoCao) {
+            if (maquyen == Contants.QUYEN_QUANLY) { // Kiểm tra lại quyền
+                replaceFragment(new BaoCaoDoanhThuFragment()); // Tạo Fragment báo cáo
+                Log.d("TrangChuActivity", "Mở Báo cáo Doanh thu Fragment."); // Thêm Log để xác nhận
+            } else {
+                // Không làm gì nếu không phải Quản lý (menu đã bị ẩn nhưng kiểm tra lại cho chắc)
+                Log.w("TrangChuActivity", "Người dùng không phải Quản lý cố gắng truy cập Báo cáo.");
+            }
         } else if (id == R.id.itDangXuat) {
             xuLyDangXuat();
         }
