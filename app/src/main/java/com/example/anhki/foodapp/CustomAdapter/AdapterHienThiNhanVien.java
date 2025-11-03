@@ -37,7 +37,7 @@ public class AdapterHienThiNhanVien extends BaseAdapter {
 
     private static class ViewHolderNhanVien {
         ImageView imHinhNhanVien;
-        TextView txtTenNhanVien, txtCMND, txtQuyenNhanVien;
+        TextView txtTenNhanVien, txtCCCD, txtQuyenNhanVien;
     }
 
     @Override
@@ -50,7 +50,7 @@ public class AdapterHienThiNhanVien extends BaseAdapter {
             // ... (ánh xạ view giữ nguyên)
             viewHolder.imHinhNhanVien = convertView.findViewById(R.id.imHinhNhanVien);
             viewHolder.txtTenNhanVien = convertView.findViewById(R.id.txtTenNhanVien);
-            viewHolder.txtCMND = convertView.findViewById(R.id.txtCMND);
+            viewHolder.txtCCCD = convertView.findViewById(R.id.txtCCCD);
             viewHolder.txtQuyenNhanVien= convertView.findViewById(R.id.txtQuyenNhanVien);
             convertView.setTag(viewHolder);
         } else {
@@ -59,7 +59,7 @@ public class AdapterHienThiNhanVien extends BaseAdapter {
 
         NhanVienDTO nhanVien = nhanVienList.get(position);
         viewHolder.txtTenNhanVien.setText(nhanVien.getTENDANGNHAP());
-        viewHolder.txtCMND.setText("CCCD: " + nhanVien.getCMND());
+        viewHolder.txtCCCD.setText("CCCD: " + nhanVien.getCCCD());
 
         // LẤY TÊN QUYỀN TỪ FIRESTORE (Bất đồng bộ)
         int maQuyen = nhanVien.getMAQUYEN();

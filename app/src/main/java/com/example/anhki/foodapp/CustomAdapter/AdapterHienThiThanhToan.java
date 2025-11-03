@@ -22,17 +22,23 @@ public class AdapterHienThiThanhToan extends RecyclerView.Adapter<AdapterHienThi
 
     private final Context context;
     private final List<ChiTietGoiMonDTO> chiTietList; // Danh sách chi tiết món ăn
+    private final MonAnClickListener listener;
+    public interface MonAnClickListener {
+        void onItemClick(int position);//sửa
+        void onItemLongClick(int position);//xóa
+    }
 
     // Constructor nhận Context và List
-    public AdapterHienThiThanhToan(Context context, List<ChiTietGoiMonDTO> chiTietList) {
+    public AdapterHienThiThanhToan(Context context, List<ChiTietGoiMonDTO> chiTietList, MonAnClickListener listener) {
         this.context = context;
         this.chiTietList = chiTietList;
+        this.listener = listener;
     }
 
     // Constructor cũ (giữ lại để tương thích nếu cần, nhưng không nên dùng)
     @Deprecated
     public AdapterHienThiThanhToan(Context context, int layout, List<ChiTietGoiMonDTO> chiTietList) {
-        this(context, chiTietList); // Gọi constructor mới
+        this(context, chiTietList, null); // Gọi constructor mới với listener là null
     }
 
 
@@ -40,51 +46,61 @@ public class AdapterHienThiThanhToan extends RecyclerView.Adapter<AdapterHienThi
     public static class ViewHolder extends RecyclerView.ViewHolder {
         TextView txtTenMonAn, txtSoLuong, txtGiaTien;
 
-        public ViewHolder(@NonNull View itemView) {
+        public ViewHolder(@NonNull View itemView, MonAnClickListener listener) { // Nhận listener
             super(itemView);
-            // Ánh xạ các TextView từ layout item_chitiet_goimon.xml
             txtTenMonAn = itemView.findViewById(R.id.txtTenMonChiTiet);
             txtSoLuong = itemView.findViewById(R.id.txtSoLuongChiTiet);
             txtGiaTien = itemView.findViewById(R.id.txtGiaTienChiTiet);
+
+            // Gán sự kiện cho toàn bộ item
+            itemView.setOnClickListener(v -> {
+                if (listener != null) {
+                    int position = getAdapterPosition();
+                    if (position != RecyclerView.NO_POSITION) {
+                        listener.onItemClick(position);
+                    }
+                }
+            });
+
+            itemView.setOnLongClickListener(v -> {
+                if (listener != null) {
+                    int position = getAdapterPosition();
+                    if (position != RecyclerView.NO_POSITION) {
+                        listener.onItemLongClick(position);
+                        return true; // Đã xử lý long click
+                    }
+                }
+                return false;
+            });
         }
     }
 
-    // Tạo ViewHolder mới (được gọi bởi layout manager)
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        // Inflate layout item_chitiet_goimon.xml
         View view = LayoutInflater.from(context).inflate(R.layout.item_chitiet_goimon, parent, false);
-        return new ViewHolder(view);
+        return new ViewHolder(view, listener); // Truyền listener vào ViewHolder
     }
 
-    // Gán dữ liệu vào ViewHolder (được gọi bởi layout manager)
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        // Lấy dữ liệu tại vị trí hiện tại
         ChiTietGoiMonDTO chiTiet = chiTietList.get(position);
-
-        // Gán dữ liệu vào các TextView
         holder.txtTenMonAn.setText(chiTiet.getTenMonAn());
-        holder.txtSoLuong.setText("x " + chiTiet.getSoLuong()); // Hiển thị số lượng
+        holder.txtSoLuong.setText("x " + chiTiet.getSoLuong());
 
-        // Định dạng và hiển thị giá tiền
-        String giaTienFormatted = formatVND(chiTiet.getGiaTien());
-        holder.txtGiaTien.setText(giaTienFormatted);
+        // Hiển thị tổng tiền cho dòng này (Giá * Số lượng)
+        long tongTienMon = chiTiet.getGiaTien() * chiTiet.getSoLuong();
+        holder.txtGiaTien.setText(formatVND(tongTienMon));
     }
 
-    // Trả về tổng số item trong danh sách
     @Override
     public int getItemCount() {
         return chiTietList.size();
     }
 
-    // Hàm định dạng tiền tệ VND
     private String formatVND(long amount) {
         Locale localeVN = new Locale("vi", "VN");
         NumberFormat currencyFormatter = NumberFormat.getCurrencyInstance(localeVN);
-        // Bỏ ký hiệu 'đ' nếu không muốn:
-        // ((DecimalFormat)currencyFormatter).applyPattern("#,###"); return currencyFormatter.format(amount) + " VNĐ";
-        return currencyFormatter.format(amount); // Trả về dạng "123.456 ₫"
+        return currencyFormatter.format(amount);
     }
 }

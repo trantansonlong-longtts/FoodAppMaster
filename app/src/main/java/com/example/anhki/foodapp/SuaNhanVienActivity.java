@@ -25,13 +25,12 @@ import java.util.Map;
 public class SuaNhanVienActivity extends AppCompatActivity implements View.OnClickListener {
     private static final String TAG = "SuaNhanVienActivity";
 
-    private EditText edTenDangNhap, edCMND, edNgaySinh;
+    private EditText edTenDangNhap, edCCCD, edNgaySinh;
     private RadioGroup rgGioiTinh;
     private Spinner spinQuyen;
     private Button btnLuu, btnThoat;
 
     private FirebaseFirestore db;
-    //private QuyenDAO quyenDAO;
     private List<QuyenDTO> quyenDTOList;
 
     private String uid; // UID của nhân viên cần sửa
@@ -42,7 +41,7 @@ public class SuaNhanVienActivity extends AppCompatActivity implements View.OnCli
         setContentView(R.layout.layout_suanhanvien);
 
         db = FirebaseFirestore.getInstance();
-        //quyenDAO = new QuyenDAO(this);
+
 
         anhXaView();
 
@@ -64,7 +63,7 @@ public class SuaNhanVienActivity extends AppCompatActivity implements View.OnCli
 
     private void anhXaView() {
         edTenDangNhap = findViewById(R.id.edSuaTenDangNhap);
-        edCMND = findViewById(R.id.edSuaCMND);
+        edCCCD = findViewById(R.id.edSuaCCCD);
         edNgaySinh = findViewById(R.id.edSuaNgaySinh);
         rgGioiTinh = findViewById(R.id.rgSuaGioiTinh);
         spinQuyen = findViewById(R.id.spinSuaQuyen);
@@ -117,7 +116,7 @@ public class SuaNhanVienActivity extends AppCompatActivity implements View.OnCli
                 DocumentSnapshot document = task.getResult();
                 if (document.exists()) {
                     edTenDangNhap.setText(document.getString("tenDangNhap"));
-                    edCMND.setText(document.getString("cmnd"));
+                    edCCCD.setText(document.getString("CCCD"));
                     edNgaySinh.setText(document.getString("ngaySinh"));
 
                     String gioiTinh = document.getString("gioiTinh");
@@ -149,7 +148,7 @@ public class SuaNhanVienActivity extends AppCompatActivity implements View.OnCli
     }
 
     private void luuThayDoi() {
-        String cmnd = edCMND.getText().toString().trim();
+        String CCCD = edCCCD.getText().toString().trim();
         String ngaySinh = edNgaySinh.getText().toString().trim();
         String gioiTinh = (rgGioiTinh.getCheckedRadioButtonId() == R.id.rdSuaNam) ? "Nam" : "Nữ";
         int maQuyen;
@@ -168,7 +167,7 @@ public class SuaNhanVienActivity extends AppCompatActivity implements View.OnCli
 
         // Tạo Map chứa các trường cần cập nhật
         Map<String, Object> updates = new HashMap<>();
-        updates.put("cmnd", cmnd);
+        updates.put("CCCD", CCCD);
         updates.put("ngaySinh", ngaySinh);
         updates.put("gioiTinh", gioiTinh);
         updates.put("maQuyen", maQuyen);

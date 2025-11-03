@@ -14,7 +14,7 @@ public class NhanVienDTO {
     private String MATKHAU;
     private String GIOITINH;
     private String NGAYSINH;
-    private String CMND; // THAY ĐỔI QUAN TRỌNG NHẤT: Chuyển từ int sang String
+    private String CCCD; // THAY ĐỔI QUAN TRỌNG NHẤT: Chuyển từ int sang String
 
     // --- Thêm Constructor để tạo đối tượng thuận tiện hơn ---
 
@@ -23,14 +23,14 @@ public class NhanVienDTO {
     }
 
     // Constructor đầy đủ tham số (tùy chọn, nhưng rất tiện lợi)
-    public NhanVienDTO(int MANV, int MAQUYEN, String TENDANGNHAP, String MATKHAU, String GIOITINH, String NGAYSINH, String CMND) {
+    public NhanVienDTO(int MANV, int MAQUYEN, String TENDANGNHAP, String MATKHAU, String GIOITINH, String NGAYSINH, String CCCD) {
         this.MANV = MANV;
         this.MAQUYEN = MAQUYEN;
         this.TENDANGNHAP = TENDANGNHAP;
         this.MATKHAU = MATKHAU;
         this.GIOITINH = GIOITINH;
         this.NGAYSINH = NGAYSINH;
-        this.CMND = CMND;
+        this.CCCD = CCCD;
     }
 
 
@@ -84,12 +84,12 @@ public class NhanVienDTO {
         this.NGAYSINH = NGAYSINH;
     }
 
-    public String getCMND() {
-        return CMND;
+    public String getCCCD() {
+        return CCCD;
     }
 
-    public void setCMND(String CMND) {
-        this.CMND = CMND;
+    public void setCCCD(String CCCD) {
+        this.CCCD = CCCD;
     }
 
     public void setUID(String UID) {this.UID = UID;}

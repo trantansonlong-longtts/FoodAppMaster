@@ -1,5 +1,5 @@
 package com.example.anhki.foodapp.DTO;
-
+import com.google.firebase.firestore.Exclude;
 public class ChiTietGoiMonDTO {
     // Các tên biến này phải khớp với tên trường trong sub-collection "chiTietGoiMon" trên Firestore
     private String tenMonAn;
@@ -11,7 +11,8 @@ public class ChiTietGoiMonDTO {
     public String getTenMonAn() {
         return tenMonAn;
     }
-
+    @Exclude
+    public String getDocumentId() { return documentId; }
     public void setDocumentId(String documentId) {
         this.documentId = documentId;
     }

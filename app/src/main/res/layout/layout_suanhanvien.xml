@@ -23,7 +23,7 @@
         android:enabled="false"/>
 
     <EditText
-        android:id="@+id/edSuaCMND"
+        android:id="@+id/edSuaCCCD"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="Số CCCD"

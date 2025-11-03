@@ -115,7 +115,7 @@ public class HienThiNhanVienFragment extends Fragment {
                                 NhanVienDTO nhanVien = new NhanVienDTO();
                                 nhanVien.setUID(doc.getId()); // Lưu UID làm mã nhân viên tạm thời
                                 nhanVien.setTENDANGNHAP(doc.getString("tenDangNhap"));
-                                nhanVien.setCMND(doc.getString("cmnd"));
+                                nhanVien.setCCCD(doc.getString("CCCD"));
                                 nhanVien.setNGAYSINH(doc.getString("ngaySinh"));
                                 nhanVien.setGIOITINH(doc.getString("gioiTinh"));
                                 Long maQuyenLong = doc.getLong("maQuyen"); // Firestore lưu số là Long
